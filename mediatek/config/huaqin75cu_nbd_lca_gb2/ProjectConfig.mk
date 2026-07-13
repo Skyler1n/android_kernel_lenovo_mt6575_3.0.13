@@ -728,7 +728,7 @@ MTK_TB_APP_CALL_FORCE_SPEAKER_ON = no
 MTK_TB_DEBUG_SUPPORT = no
 
 
-MTK_FAN5405_SUPPORT = yes
+MTK_FAN5405_SUPPORT = no
 
 MTK_CMMB_CHIP = Siano
     #   Siano              :  Use siano
