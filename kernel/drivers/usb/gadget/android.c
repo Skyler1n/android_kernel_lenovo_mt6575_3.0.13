@@ -71,8 +71,8 @@ static const char longname[] = "Gadget Android";
 #define PRODUCT_ID		0x0001
 
 /* Default manufacturer and product string , overridden by userspace */
-#define MANUFACTURER_STRING "TCT"
-#define PRODUCT_STRING "TCL Android Phone"
+#define MANUFACTURER_STRING "Lenovo"
+#define PRODUCT_STRING "MT6575 Phone"
 
 
 //Added for USB Develpment debug, more log for more debuging help
