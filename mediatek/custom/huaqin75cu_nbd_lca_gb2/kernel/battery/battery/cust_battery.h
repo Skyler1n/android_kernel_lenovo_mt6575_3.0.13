@@ -81,6 +81,7 @@ typedef struct{
 
 /* Recharging Battery Voltage */
 #define RECHARGING_VOLTAGE      4110
+#define TOPOFF_CHG_VOLTAGE      4080    /* FAN5405 recharge threshold: Vorg - 120mV */
 
 /* Charging Current Setting */
 #define CONFIG_USB_IF 						0   
