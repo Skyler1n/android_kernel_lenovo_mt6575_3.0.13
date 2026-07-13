@@ -23,15 +23,47 @@ extern LCM_DRIVER tft1p3037_lcm_drv;
 extern LCM_DRIVER ha5266_lcm_drv;
 extern LCM_DRIVER hsd070idw1_lcm_drv;
 extern LCM_DRIVER lg4571_lcm_drv;
-extern LCM_DRIVER lvds_wsvga_lcm_drv;
+extern LCM_DRIVER lvds_wsvga_lcm_dr7800v;
 extern LCM_DRIVER lvds_wsvga_ti_lcm_drv;
 extern LCM_DRIVER nt35565_3d_lcm_drv;
 extern LCM_DRIVER tm070ddh03_lcm_drv;
 extern LCM_DRIVER r61408_lcm_drv;
 extern LCM_DRIVER r61581_dbi_jingdongfang_lcm_drv;
-extern LCM_DRIVER at070tna2_lcm_drv;
-extern LCM_DRIVER hb070d_lcm_drv;
-extern LCM_DRIVER nt35510_lcm_drv;
+extern LCM_DRIVER qtb4d0058_wvga_nt35510_lcm_drv; 
+extern LCM_DRIVER kd50m4_wvga_otm8009a_lcm_drv;  //amy0504 
+extern LCM_DRIVER srl5002hn_wvga_nt35510_lcm_drv;  //amy0504 
+extern LCM_DRIVER yt50f23c0_wvga_ili7800_lcm_drv;
+#if defined(N618_WVGA_NT35510)//tengdeqiang 
+extern LCM_DRIVER n618_wvga_nt35510_lcm_drv;
+#endif
+extern LCM_DRIVER nt35516_lcm_drv;
+extern LCM_DRIVER tr3p2497_fwvga_hx8363b_lcm_drv;
+#if defined(IPS3P2620_QHD_NT35516)
+extern LCM_DRIVER ips3p2620_qhd_nt35516_lcm_drv;
+#endif
+#if defined(SRL4317GN_QHD_NT35516)
+extern LCM_DRIVER srl4317gn_qhd_nt35516_lcm_drv;
+#endif
+#if defined(P2498_WVGA_NT35510)
+extern LCM_DRIVER p2498_wvga_nt35510_lcm_drv; 
+#endif
+
+extern LCM_DRIVER kd50m14_wvga_nt35510_lcm_drv;   
+extern LCM_DRIVER n3p4527_wvga_nt35510_lcm_drv;
+
+#if defined(BLG9056B_WVGA_OTM8018B)//tengdeqiang 
+extern LCM_DRIVER blg9056b_wvga_otm8018b_lcm_drv;
+#endif
+extern LCM_DRIVER srl5002h_wvga_otm8009a_lcm_drv;  //amy0518 
+extern LCM_DRIVER sr4009gg_lg4573_lcm_drv;
+extern LCM_DRIVER sr4009tn_nt35510_lcm_drv;
+extern LCM_DRIVER yt40f51x6_wvga_ili9805_dsi_lcm_drv;
+extern LCM_DRIVER dj3065a_hx8369a_lcm_drv;//LK@AUX_V900
+extern LCM_DRIVER tft3p2380_nt35510_lcm_drv;   //amy0604
+extern LCM_DRIVER h40d07_nt35510_lcm_drv;   //amy0604
+extern LCM_DRIVER lm050amybo1j_wvga_rm68120_lcm_drv;
+extern LCM_DRIVER tft3p2710_fwvga_otm8018b_lcm_drv;
+
 
 LCM_DRIVER* lcm_driver_list[] = 
 { 
@@ -155,16 +187,74 @@ LCM_DRIVER* lcm_driver_list[] =
 	&tm070ddh03_lcm_drv,
 #endif
 
-#if defined(AT070TNA2)
-	&at070tna2_lcm_drv,
+#if defined(N618_WVGA_NT35510)//tengdeqiang 
+	&n618_wvga_nt35510_lcm_drv,
 #endif
 
-#if defined(HB070D)
-	&hb070d_lcm_drv,
+#if defined(BLG9056B_WVGA_OTM8018B)//tengdeqiang 
+	&blg9056b_wvga_otm8018b_lcm_drv,
 #endif
 
-#if defined(NT35510)
-	&nt35510_lcm_drv,
+#if defined(QTB4D0058_WVGA_NT35510) //chailu
+	&qtb4d0058_wvga_nt35510_lcm_drv,
+#endif
+#if defined(KD50M4_WVGA_OTM8009A) //chailu
+	&kd50m4_wvga_otm8009a_lcm_drv,
+#endif
+
+#if defined(YT50F23C0_WVGA_ILI7800) 
+	&yt50f23c0_wvga_ili7800_lcm_drv,
+#endif
+#if defined(NT35516)
+	&nt35516_lcm_drv,
+#endif
+#if defined(IPS3P2620_QHD_NT35516)
+	&ips3p2620_qhd_nt35516_lcm_drv,
+#endif
+#if defined(SRL4317GN_QHD_NT35516)
+	&srl4317gn_qhd_nt35516_lcm_drv,
+#endif
+#if defined(KD50M14_WVGA_NT35510)
+	&kd50m14_wvga_nt35510_lcm_drv,
+#endif
+#if defined(SRL5002HN_WVGA_NT35510)
+	&srl5002hn_wvga_nt35510_lcm_drv,
+#endif
+#if defined(TR3P2497_FWVGA_HX8363B)
+	&tr3p2497_fwvga_hx8363b_lcm_drv,
+#endif
+#if defined(P2498_WVGA_NT35510)
+	&p2498_wvga_nt35510_lcm_drv,
+#endif
+#if defined(N3P4527_WVGA_NT35510)
+	&n3p4527_wvga_nt35510_lcm_drv,
+#endif
+#if defined(SRL5002H_WVGA_OTM8009A) //amy0518 
+	&srl5002h_wvga_otm8009a_lcm_drv,
+#endif
+#if defined(YT40F51X6_WVGA_ILI9805_DSI)
+	&yt40f51x6_wvga_ili9805_dsi_lcm_drv
+#endif
+#if defined(SR4009TN_WVGA_NT35510)
+	&sr4009tn_nt35510_lcm_drv,
+#endif
+#if defined(SR4009GG_WVGA_LG4573)
+	&sr4009gg_lg4573_lcm_drv,
+#endif
+#if defined(DJ3065A_WVGA_HX8369A)
+	&dj3065a_hx8369a_lcm_drv,
+#endif
+#if defined(TFT3P2380_WVGA_NT35510)  //amy0604 
+	&tft3p2380_nt35510_lcm_drv,
+#endif
+#if defined(H40D07_WVGA_NT35510)  //amy0604
+	&h40d07_nt35510_lcm_drv,
+#endif
+#if defined(LM050AMYBO1J_WVGA_RM68120)
+	&lm050amybo1j_wvga_rm68120_lcm_drv,
+#endif
+#if defined(TFT3P2710_FWVGA_OTM8018B)
+	&tft3p2710_fwvga_otm8018b_lcm_drv,
 #endif
 };
 
