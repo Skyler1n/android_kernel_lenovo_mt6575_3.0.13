@@ -45,5 +45,5 @@ struct acc_hw {
     int (*power)(struct acc_hw *hw, unsigned int on, char *devname);
 };
 
-extern struct acc_hw* get_cust_acc_hw(void);
+extern struct acc_hw* mc3430_get_cust_acc_hw(void);
 #endif 

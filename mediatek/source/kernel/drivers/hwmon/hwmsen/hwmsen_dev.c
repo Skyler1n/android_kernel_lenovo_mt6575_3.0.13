@@ -1,4 +1,59 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/* alps/ALPS_SW/TRUNK/MAIN/alps/kernel/drivers/hwmon/mt6516/hwmsen_dev.c
+ *
+ * (C) Copyright 2009 
+ * MediaTek <www.MediaTek.com>
+ *
+ * Sensor devices
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 #include <linux/interrupt.h>
 #include <linux/miscdevice.h>
 #include <linux/platform_device.h>
@@ -21,11 +76,16 @@
 #define SENSOR_INVALID_VALUE -1
 #define MAX_CHOOSE_G_NUM 5
 #define MAX_CHOOSE_M_NUM 5
-//static char gsensor_name[25];
+#define MAX_CHOOSE_ALSPS_NUM  5
+static char gsensor_name[25];
 //static char msensor_name[25];
+static char alsps_sensor_name[25];
 static void hwmsen_early_suspend(struct early_suspend *h);
 static void hwmsen_late_resume(struct early_suspend *h);
 static void update_workqueue_polling_rate(int newDelay);
+/******************************************************************************
+ * structure / enumeration / macro / definition
+ *****************************************************************************/
 
 struct sensor_delay 
 {
@@ -41,9 +101,10 @@ struct hwmsen_context { /*sensor context*/
 	
 	struct hwmsen_object    obj;
 };
+static struct sensor_init_info* alsps_sensor_init_list[MAX_CHOOSE_ALSPS_NUM] = {0};
+//amy0504 
 
-
-//static struct sensor_init_info* gsensor_init_list[MAX_CHOOSE_G_NUM]= {0}; //modified
+static struct sensor_init_info* gsensor_init_list[MAX_CHOOSE_G_NUM]= {0}; //modified
 //static struct sensor_init_info* msensor_init_list[MAX_CHOOSE_G_NUM]= {0}; //modified
 
 
@@ -87,6 +148,9 @@ struct hwmdev_object {
 
 static bool enable_again = false;
 static struct hwmdev_object *hwm_obj = NULL;
+/******************************************************************************
+ * static variables
+ *****************************************************************************/
 
 static struct hwmsen_data obj_data ={
 	.lock =__MUTEX_INITIALIZER(obj_data.lock), 
@@ -98,6 +162,9 @@ static struct dev_context dev_cxt = {
 
 
 
+/******************************************************************************
+ * Local functions
+ *****************************************************************************/
 static void hwmsen_work_func(struct work_struct *work)
 {
 
@@ -291,6 +358,9 @@ static void hwmsen_work_func(struct work_struct *work)
 	}
 }
 
+/******************************************************************************
+ * export functions
+ *****************************************************************************/
 int hwmsen_get_interrupt_data(int sensor, hwm_sensor_data *data) 
 {
 	//HWM_LOG("++++++++++++++++++++++++++++hwmsen_get_interrupt_data function sensor = %d\n",sensor);
@@ -651,18 +721,61 @@ static ssize_t hwmsen_show_hwmdev(struct device* dev,
     //struct hwmdev_object *devobj = (struct hwmdev_object*)dev_get_drvdata(dev);
     int len = 0;
 	printk("sensor test: hwmsen_show_hwmdev function!\n");
+/*
+    if (!devobj || !devobj->dc) {
+        HWM_ERR("null pointer: %p, %p", devobj, (!devobj) ? (NULL) : (devobj->dc));
+        return 0;
+    }
+    for (idx = 0; idx < C_MAX_HWMSEN_NUM; idx++) 
+        len += snprintf(buf+len, PAGE_SIZE-len, "    %d", idx);
+    len += snprintf(buf+len, PAGE_SIZE-len, "\n");
+    for (idx = 0; idx < C_MAX_HWMSEN_NUM; idx++)
+        len += snprintf(buf+len, PAGE_SIZE-len, "    %d", atomic_read(&devobj->dc->cxt[idx].enable));
+    len += snprintf(buf+len, PAGE_SIZE-len, "\n");
+    */
     return len;
 }
 /*----------------------------------------------------------------------------*/
 static ssize_t hwmsen_store_active(struct device* dev, struct device_attribute *attr,
                                   const char *buf, size_t count)
 {
+/*
+	printk("sensor test: hwmsen_store_active function!\n");
+    struct hwmdev_object *devobj = (struct hwmdev_object*)dev_get_drvdata(dev);
+    int sensor, enable, err, idx;
+
+    if (!devobj || !devobj->dc) {
+        HWM_ERR("null pointer!!\n");
+        return count;
+    }
+
+    if (!strncmp(buf, "all-start", 9)) {
+        for (idx = 0; idx < C_MAX_HWMSEN_NUM; idx++)
+            hwmsen_enable(devobj, idx, 1);
+    } else if (!strncmp(buf, "all-stop", 8)) {
+        for (idx = 0; idx < C_MAX_HWMSEN_NUM; idx++)
+            hwmsen_enable(devobj, idx, 0);    
+    } else if (2 == sscanf(buf, "%d %d", &sensor, &enable)) {
+        if ((err = hwmsen_enable(devobj, sensor, enable)))
+            HWM_ERR("sensor enable failed: %d\n", err);
+    } 
+*/
     return count;
 }
 /*----------------------------------------------------------------------------*/
 static ssize_t hwmsen_show_delay(struct device* dev, 
                                  struct device_attribute *attr, char *buf) 
 {
+/*
+    struct hwmdev_object *devobj = (struct hwmdev_object*)dev_get_drvdata(dev);
+printk("sensor test: hwmsen_show_delay function!\n");
+    if (!devobj || !devobj->dc) {
+        HWM_ERR("null pointer!!\n");
+        return 0;
+    }
+    
+    return snprintf(buf, PAGE_SIZE, "%d\n", atomic_read(&devobj->delay));    
+*/
 
 	return 0;
 
@@ -671,18 +784,63 @@ static ssize_t hwmsen_show_delay(struct device* dev,
 static ssize_t hwmsen_store_delay(struct device* dev, struct device_attribute *attr,
                                   const char *buf, size_t count)
 {
+/*
+    struct hwmdev_object *devobj = (struct hwmdev_object*)dev_get_drvdata(dev);
+    int delay;
+printk("sensor test: hwmsen_show_delay function!\n");
+    if (!devobj || !devobj->dc) {
+        HWM_ERR("null pointer!!\n");
+        return count;
+    }
+
+    if (1 != sscanf(buf, "%d", &delay)) {
+        HWM_ERR("invalid format!!\n");
+        return count;
+    }
+
+    atomic_set(&devobj->delay, delay);
+   */
     return count;
 }                                 
 /*----------------------------------------------------------------------------*/
 static ssize_t hwmsen_show_wake(struct device* dev, 
                                  struct device_attribute *attr, char *buf) 
 {
+/*
+	printk("sensor test: hwmsen_show_wake function!\n");
+    struct hwmdev_object *devobj = (struct hwmdev_object*)dev_get_drvdata(dev);
+
+    if (!devobj || !devobj->dc) {
+        HWM_ERR("null pointer!!\n");
+        return 0;
+    }
+    return snprintf(buf, PAGE_SIZE, "%d\n", atomic_read(&devobj->wake));    
+    */
     return 0;
 }
 /*----------------------------------------------------------------------------*/
 static ssize_t hwmsen_store_wake(struct device* dev, struct device_attribute *attr,
                                   const char *buf, size_t count)
 {
+/*
+    struct hwmdev_object *devobj = (struct hwmdev_object*)dev_get_drvdata(dev);
+    int wake, err;
+printk("sensor test: hwmsen_store_wake function!\n");
+    if (!devobj || !devobj->dc) {
+        HWM_ERR("null pointer!!\n");
+        return count;
+    }
+
+    if (1 != sscanf(buf, "%d", &wake)) {
+        HWM_ERR("invalid format!!\n");
+        return count;
+    }
+
+    if ((err = hwmsen_wakeup(devobj))) {
+        HWM_ERR("wakeup sensor fail, %d\n", err);
+        return count;
+    }
+   */ 
     return count;
 }  
 
@@ -1127,6 +1285,90 @@ static struct platform_driver hwmsen_driver =
 
 /*----------------------------------------------------------------------------*/
 
+#if defined(MTK_AUTO_DETECT_ALSPS)
+
+int hwmsen_alsps_sensor_remove(struct platform_device *pdev)
+{
+    int err =0;
+	int i=0;
+	for(i = 0; i < MAX_CHOOSE_ALSPS_NUM; i++)
+	{
+	   if(0 ==  strcmp(alsps_sensor_name,alsps_sensor_init_list[i]->name))
+	   {
+	      if(NULL == alsps_sensor_init_list[i]->uninit)
+	      {
+	        HWM_LOG(" hwmsen_alsps_sensor_remove null pointer \n");
+	        return -1;
+	      }
+	      alsps_sensor_init_list[i]->uninit();
+	   }
+	}
+    return 0;
+}
+
+static int alsps_sensor_probe(struct platform_device *pdev) 
+{
+    int i =0;
+	int err=0;
+	HWM_LOG(" alsps_sensor_probe +\n");
+	for(i = 0; i < MAX_CHOOSE_ALSPS_NUM; i++)
+	{
+	  if(NULL != alsps_sensor_init_list[i])
+	  {
+	    err = alsps_sensor_init_list[i]->init();
+		if(0 == err)
+		{
+		   strcpy(alsps_sensor_name,alsps_sensor_init_list[i]->name);
+		   HWM_LOG(" alsps_sensor %s probe ok\n", alsps_sensor_name);
+		   break;
+		}
+	  }
+	}
+	return 0;
+}
+
+
+static struct platform_driver alsps_sensor_driver = {
+	.probe      = alsps_sensor_probe,
+	.remove     = hwmsen_alsps_sensor_remove,    
+	.driver     = 
+	{
+		.name  = "als_ps",
+//amy0510 		.owner = THIS_MODULE,
+	}
+};
+
+int hwmsen_alsps_sensor_add(struct sensor_init_info* obj) 
+{
+    int err=0;
+	int i =0;
+	
+	HWM_FUN(f);
+
+	for(i =0; i < MAX_CHOOSE_ALSPS_NUM; i++ )
+	{
+	    if(NULL == alsps_sensor_init_list[i])
+	    {
+	          alsps_sensor_init_list[i] = kzalloc(sizeof(struct sensor_init_info), GFP_KERNEL);
+		  if(NULL == alsps_sensor_init_list[i])
+		  {
+		     HWM_ERR("kzalloc error");
+		     return -1;
+		  }
+		  obj->platform_diver_addr = &alsps_sensor_driver;
+	      alsps_sensor_init_list[i] = obj;
+		  
+		  break;
+	    }
+	}
+		
+	return err;
+}
+//EXPORT_SYMBOL_GPL(hwmsen_alsps_sensor_add);
+
+#endif
+
+
 #if defined(MTK_AUTO_DETECT_MAGNETOMETER)
 
 int hwmsen_msensor_remove(struct platform_device *pdev)
@@ -1212,7 +1454,7 @@ int hwmsen_msensor_add(struct sensor_init_info* obj)
 
 
 
-#if defined(MTK_AUTO_DETECT_ACCELEROMETER)//
+#if defined(MTK_AUTO_DETECT_ACCELEROMETER)
 
 int hwmsen_gsensor_remove(struct platform_device *pdev)
 {
@@ -1280,7 +1522,7 @@ static struct platform_driver gsensor_driver = {
 	}
 };
 
- int hwmsen_gsensor_add(struct sensor_init_info* obj) 
+int hwmsen_gsensor_add(struct sensor_init_info* obj) 
 {
     int err=0;
 	int i =0;
@@ -1306,7 +1548,7 @@ static struct platform_driver gsensor_driver = {
 		
 	return err;
 }
-//EXPORT_SYMBOL_GPL(hwmsen_gsensor_add);
+EXPORT_SYMBOL_GPL(hwmsen_gsensor_add);
 
 #endif
 
@@ -1333,6 +1575,14 @@ static int __init hwmsen_init(void)
 		if(platform_driver_register(&msensor_driver))
 		{
 			HWM_ERR("failed to register mensor driver");
+			return -ENODEV;
+		}
+#endif
+
+#if defined(MTK_AUTO_DETECT_ALSPS)  //amy0504 
+		if(platform_driver_register(&alsps_sensor_driver))
+		{
+			HWM_ERR("failed to register alsps_sensor driver");
 			return -ENODEV;
 		}
 #endif
