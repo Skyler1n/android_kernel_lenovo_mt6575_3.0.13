@@ -1,4 +1,52 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/* drivers/hwmon/mt6516/amit/tmd2771.c - TMD2771 ALS/PS driver
+ * 
+ * Author: MingHsien Hsieh <minghsien.hsieh@mediatek.com>
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ */
 
 #include <linux/interrupt.h>
 #include <linux/i2c.h>
@@ -34,6 +82,8 @@
 #include <mach/mt6575_pm_ldo.h>
 #endif
 
+#define PHILIPS_ATLAS
+
 #ifdef MT6516
 #define POWER_NONE_MACRO MT6516_POWER_NONE
 #endif
@@ -53,7 +103,13 @@
 #include <cust_eint.h>
 #include <cust_alsps.h>
 #include "tmd2771.h"
+/******************************************************************************
+ * configuration
+*******************************************************************************/
 /*----------------------------------------------------------------------------*/
+
+int TMD2771_CMM_PPCOUNT_VALUE = 0x04;  //0x0B;
+int ZOOM_TIME = 3300;
 
 #define TMD2771_DEV_NAME     "TMD2771"
 /*----------------------------------------------------------------------------*/
@@ -62,6 +118,9 @@
 #define APS_ERR(fmt, args...)    printk(KERN_ERR  APS_TAG"%s %d : "fmt, __FUNCTION__, __LINE__, ##args)
 #define APS_LOG(fmt, args...)    printk(KERN_INFO APS_TAG fmt, ##args)
 #define APS_DBG(fmt, args...)    printk(KERN_INFO APS_TAG fmt, ##args)                 
+/******************************************************************************
+ * extern functions
+*******************************************************************************/
 /*for interrup work mode support --add by liaoxl.lenovo 12.08.2011*/
 #ifdef MT6575
 	extern void mt65xx_eint_unmask(unsigned int line);
@@ -221,6 +280,27 @@ static void tmd2771_power(struct alsps_hw *hw, unsigned int on)
 			}
 		}
 	}
+#if defined(PHILIPS_ATLAS)||defined(PHILIPS_TITAN)||defined(SIMCOM_I6000)
+	if(power_on == on)
+	{
+		APS_LOG("ignore power control: %d\n", on);
+	}
+	else if(on)
+	{
+			APS_LOG("tmd2771_power,on\n");
+            mt_set_gpio_mode(GPIO_ALS_LDOEN_PIN, GPIO_ALS_LDOEN_PIN_M_GPIO);
+            mt_set_gpio_dir(GPIO_ALS_LDOEN_PIN, GPIO_DIR_OUT);
+            mt_set_gpio_out(GPIO_ALS_LDOEN_PIN, GPIO_OUT_ONE);
+            mdelay(150);
+	}
+	else
+	{
+			APS_LOG("tmd2771_power,off\n");
+            mt_set_gpio_mode(GPIO_ALS_LDOEN_PIN, GPIO_ALS_LDOEN_PIN_M_GPIO);
+            mt_set_gpio_dir(GPIO_ALS_LDOEN_PIN, GPIO_DIR_OUT);
+            mt_set_gpio_out(GPIO_ALS_LDOEN_PIN, GPIO_OUT_ZERO);
+	}
+#endif
 	power_on = on;
 }
 /*----------------------------------------------------------------------------*/
@@ -617,7 +697,7 @@ static long tmd2771_enable_ps(struct i2c_client *client, int enable)
 			else
 			{
 				databuf[0] = TMD2771_CMM_INT_LOW_THD_LOW;	
-				databuf[1] = (u8)(750 & 0x00FF);
+				databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_low)) & 0x00FF);
 				res = i2c_master_send(client, databuf, 0x2);
 				if(res <= 0)
 				{
@@ -625,7 +705,7 @@ static long tmd2771_enable_ps(struct i2c_client *client, int enable)
 					return TMD2771_ERR_I2C;
 				}
 				databuf[0] = TMD2771_CMM_INT_LOW_THD_HIGH;	
-				databuf[1] = (u8)((750 & 0xFF00) >> 8);
+				databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_low)) & 0xFF00) >> 8);
 				res = i2c_master_send(client, databuf, 0x2);
 				if(res <= 0)
 				{
@@ -633,7 +713,7 @@ static long tmd2771_enable_ps(struct i2c_client *client, int enable)
 					return TMD2771_ERR_I2C;
 				}
 				databuf[0] = TMD2771_CMM_INT_HIGH_THD_LOW;	
-				databuf[1] = (u8)(900 & 0x00FF);
+				databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_high)) & 0x00FF);
 				res = i2c_master_send(client, databuf, 0x2);
 				if(res <= 0)
 				{
@@ -641,7 +721,7 @@ static long tmd2771_enable_ps(struct i2c_client *client, int enable)
 					return TMD2771_ERR_I2C;
 				}
 				databuf[0] = TMD2771_CMM_INT_HIGH_THD_HIGH; 
-				databuf[1] = (u8)((900 & 0xFF00) >> 8);;
+				databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_high)) & 0xFF00) >> 8);;
 				res = i2c_master_send(client, databuf, 0x2);
 				if(res <= 0)
 				{
@@ -1044,7 +1124,7 @@ static int tmd2771_init_client_for_cali(struct i2c_client *client)
 	}
 
 	databuf[0] = TMD2771_CMM_CONTROL;    
-	databuf[1] = 0x20;//0x22
+	databuf[1] =0x60; // 0x20;//0x22
 	res = i2c_master_send(client, databuf, 0x2);
 	if(res <= 0)
 	{
@@ -1150,7 +1230,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 		else
 		{
 			databuf[0] = TMD2771_CMM_INT_LOW_THD_LOW;	
-			databuf[1] = (u8)(750 & 0x00FF);
+			databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_low)) & 0x00FF);
 			res = i2c_master_send(client, databuf, 0x2);
 			if(res <= 0)
 			{
@@ -1158,7 +1238,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 				return TMD2771_ERR_I2C;
 			}
 			databuf[0] = TMD2771_CMM_INT_LOW_THD_HIGH;	
-			databuf[1] = (u8)((750 & 0xFF00) >> 8);
+			databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_low))& 0xFF00) >> 8);
 			res = i2c_master_send(client, databuf, 0x2);
 			if(res <= 0)
 			{
@@ -1166,7 +1246,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 				return TMD2771_ERR_I2C;
 			}
 			databuf[0] = TMD2771_CMM_INT_HIGH_THD_LOW;	
-			databuf[1] = (u8)(900 & 0x00FF);
+			databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_high)) & 0x00FF);
 			res = i2c_master_send(client, databuf, 0x2);
 			if(res <= 0)
 			{
@@ -1174,7 +1254,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 				return TMD2771_ERR_I2C;
 			}
 			databuf[0] = TMD2771_CMM_INT_HIGH_THD_HIGH;	
-			databuf[1] = (u8)((900 & 0xFF00) >> 8);;
+			databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_high)) & 0xFF00) >> 8);;
 			res = i2c_master_send(client, databuf, 0x2);
 			if(res <= 0)
 			{
@@ -1224,7 +1304,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 
         /*Lenovo-sw chenlj2 add 2011-06-03,modified gain 16  to 1 */
 	databuf[0] = TMD2771_CMM_CONTROL;    
-	databuf[1] = 0x20;
+	databuf[1] = 0x60; //0x20;
 	res = i2c_master_send(client, databuf, 0x2);
 	if(res <= 0)
 	{
@@ -1250,6 +1330,9 @@ EXIT_ERR:
 	return res;
 }
 
+/****************************************************************************** 
+ * Function Configuration
+******************************************************************************/
 int tmd2771_read_als(struct i2c_client *client, u16 *data)
 {
 	struct tmd2771_priv *obj = i2c_get_clientdata(client);	 
@@ -1659,20 +1742,40 @@ static void tmd2771_eint_work(struct work_struct *work)
 /*singal interrupt function add*/
 #if 1
 		if(intr_flag_value){
-				//printk("yucong interrupt value ps will < 750");
-				databuf[0] = TMD2771_CMM_INT_LOW_THD_LOW;	
-				databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_low)) & 0x00FF);
-				res = i2c_master_send(obj->client, databuf, 0x2);
-				if(res <= 0)
+				//printk("yucong interrupt value ps will < 900");
+				if(ps_cali.valid == 1)
 				{
-					return;
+					databuf[0] = TMD2771_CMM_INT_LOW_THD_LOW;	
+					databuf[1] = (u8)( ps_cali.far_away& 0x00FF);
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}
+					databuf[0] = TMD2771_CMM_INT_LOW_THD_HIGH;	
+					databuf[1] = (u8)((ps_cali.far_away & 0xFF00) >> 8);
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}					
 				}
-				databuf[0] = TMD2771_CMM_INT_LOW_THD_HIGH;	
-				databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_low)) & 0xFF00) >> 8);
-				res = i2c_master_send(obj->client, databuf, 0x2);
-				if(res <= 0)
+				else
 				{
-					return;
+					databuf[0] = TMD2771_CMM_INT_LOW_THD_LOW;	
+					databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_low)) & 0x00FF);
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}
+					databuf[0] = TMD2771_CMM_INT_LOW_THD_HIGH;	
+					databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_low)) & 0xFF00) >> 8);
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}
 				}
 				databuf[0] = TMD2771_CMM_INT_HIGH_THD_LOW;	
 				databuf[1] = (u8)(0x00FF);
@@ -1705,19 +1808,40 @@ static void tmd2771_eint_work(struct work_struct *work)
 				{
 					return;
 				}
-				databuf[0] = TMD2771_CMM_INT_HIGH_THD_LOW;	
-				databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_high)) & 0x00FF);
-				res = i2c_master_send(obj->client, databuf, 0x2);
-				if(res <= 0)
+
+				if(ps_cali.valid == 1)
 				{
-					return;
+					databuf[0] = TMD2771_CMM_INT_HIGH_THD_LOW;	
+					databuf[1] = (u8)(ps_cali.close& 0x00FF);
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}
+					databuf[0] = TMD2771_CMM_INT_HIGH_THD_HIGH; 
+					databuf[1] = (u8)((ps_cali.close & 0xFF00) >> 8);;
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}
 				}
-				databuf[0] = TMD2771_CMM_INT_HIGH_THD_HIGH; 
-				databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_high)) & 0xFF00) >> 8);;
-				res = i2c_master_send(obj->client, databuf, 0x2);
-				if(res <= 0)
+				else
 				{
+					databuf[0] = TMD2771_CMM_INT_HIGH_THD_LOW;	
+					databuf[1] = (u8)((atomic_read(&obj->ps_thd_val_high)) & 0x00FF);
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
+						return;
+					}
+					databuf[0] = TMD2771_CMM_INT_HIGH_THD_HIGH; 
+					databuf[1] = (u8)(((atomic_read(&obj->ps_thd_val_high)) & 0xFF00) >> 8);;
+					res = i2c_master_send(obj->client, databuf, 0x2);
+					if(res <= 0)
+					{
 					return;
+					}
 				}
 		}
 #endif
@@ -1732,6 +1856,9 @@ static void tmd2771_eint_work(struct work_struct *work)
 }
 
 
+/****************************************************************************** 
+ * Function Configuration
+******************************************************************************/
 static int tmd2771_open(struct inode *inode, struct file *file)
 {
 	file->private_data = tmd2771_i2c_client;
@@ -1861,6 +1988,16 @@ static int tmd2771_read_data_for_cali(struct i2c_client *client, struct PS_CALI_
 
 
 /*----------------------------------------------------------------------------*/
+/************************longxuewei add 2012-03-06 start*************************************/
+#define ALSPS				0X84
+#define ALSPS_GET_ALS_RAW_DATA2  	_IOR(ALSPS, 0x09, int)
+#define ALSPS_GET_PS_THD                                       _IOR(ALSPS, 0x0a, int)
+#define ALSPS_SET_PS_CALI  						_IOR(ALSPS, 0x0b, int)
+#define ALSPS_GET_PS_RAW_DATA_FOR_CALI          _IOR(ALSPS, 0x0c, int)
+
+
+/************************longxuewei add 2012-03-06 end*************************************/
+
 static long tmd2771_unlocked_ioctl(struct file *file, unsigned int cmd,
        unsigned long arg)
 {
@@ -1988,7 +2125,8 @@ static long tmd2771_unlocked_ioctl(struct file *file, unsigned int cmd,
 			}              
 			break;
 
-		case ALSPS_GET_ALS_RAW_DATA:    
+		case ALSPS_GET_ALS_RAW_DATA:
+		case ALSPS_GET_ALS_RAW_DATA2:      
 			if(err = tmd2771_read_als(obj->client, &obj->als))
 			{
 				goto err_out;
@@ -2001,7 +2139,58 @@ static long tmd2771_unlocked_ioctl(struct file *file, unsigned int cmd,
 				goto err_out;
 			}              
 			break;
-
+		case ALSPS_SET_PS_CALI:
+			dat = (void __user*)arg;
+			if(dat == NULL)
+			{
+				APS_LOG("dat == NULL\n");
+				err = -EINVAL;
+				break;	  
+			}
+			if(copy_from_user(&ps_cali_temp,dat, sizeof(ps_cali_temp)))
+			{
+				APS_LOG("copy_from_user\n");
+				err = -EFAULT;
+				break;	  
+			}
+			tmd2771_WriteCalibration(&ps_cali_temp);
+			APS_LOG(" ALSPS_SET_PS_CALI %d,%d,%d\t",ps_cali_temp.close,ps_cali_temp.far_away,ps_cali_temp.valid);
+			break;
+		case ALSPS_GET_PS_RAW_DATA_FOR_CALI:
+			tmd2771_init_client_for_cali(obj->client);
+			err = tmd2771_read_data_for_cali(obj->client,&ps_cali_temp);
+			if(err)
+			{
+			   goto err_out;
+			}
+			tmd2771_init_client(obj->client);
+			tmd2771_enable_ps(obj->client, 0);
+			tmd2771_enable(obj->client, 0);
+			if(copy_to_user(ptr, &ps_cali_temp, sizeof(ps_cali_temp)))
+			{
+				err = -EFAULT;
+				goto err_out;
+			}              
+			break;
+		case ALSPS_GET_PS_THD:    //ps_threshold
+			if(ps_cali.valid==1)
+			{
+				ps_cali_temp.close=ps_cali.close;
+				ps_cali_temp.far_away=ps_cali.far_away;
+				ps_cali_temp.valid=ps_cali.valid;
+			}
+			else
+			{
+				ps_cali_temp.close=atomic_read(&obj->ps_thd_val_high);
+				ps_cali_temp.far_away=atomic_read(&obj->ps_thd_val_low);
+				ps_cali_temp.valid=0;
+			}			
+			if(copy_to_user(ptr, &ps_cali_temp, sizeof(ps_cali_temp)))
+			{
+				err = -EFAULT;
+				goto err_out;
+			}              
+			break;
 		default:
 			APS_ERR("%s not supported = 0x%04x", __FUNCTION__, cmd);
 			err = -ENOIOCTLCMD;
@@ -2118,6 +2307,11 @@ static void tmd2771_early_suspend(struct early_suspend *h)
 			APS_ERR("disable als fail: %d\n", err); 
 		}
 	}
+	if (!test_bit(CMC_BIT_PS, &obj->enable))
+	{
+		tmd2771_enable(obj->client, 0);
+		printk("[LONG][ALS/PS]  tmd2771_early_suspend POWER OFF\r\n");
+	}
 	#endif
 }
 /*----------------------------------------------------------------------------*/
@@ -2134,6 +2328,11 @@ static void tmd2771_late_resume(struct early_suspend *h)
 	}
 
         #if 1
+	if (!test_bit(CMC_BIT_PS, &obj->enable))
+	{
+		tmd2771_enable(obj->client, 1);
+	}
+		
 	atomic_set(&obj->als_suspend, 0);
 	if(test_bit(CMC_BIT_ALS, &obj->enable))
 	{
@@ -2240,7 +2439,6 @@ int tmd2771_ps_operate(void* self, uint32_t command, void* buff_in, int size_in,
 	return err;
 }
 
-static int temp_als = 0;
 int tmd2771_als_operate(void* self, uint32_t command, void* buff_in, int size_in,
 		void* buff_out, int size_out, int* actualout)
 {
@@ -2305,7 +2503,7 @@ int tmd2771_als_operate(void* self, uint32_t command, void* buff_in, int size_in
 				tmd2771_read_als(obj->client, &obj->als);
 				if(obj->als == 0)
 				{
-					sensor_data->values[0] = temp_als;				
+					sensor_data->values[0] = -1;				
 				}else{
 					u16 b[2];
 					int i;
@@ -2315,7 +2513,6 @@ int tmd2771_als_operate(void* self, uint32_t command, void* buff_in, int size_in
 					}
 					(b[1] > b[0])?(obj->als = b[0]):(obj->als = b[1]);
 					sensor_data->values[0] = tmd2771_get_als_value(obj, obj->als);
-					temp_als = sensor_data->values[0];
 				}
 				#endif
 				sensor_data->value_divide = 1;
@@ -2378,7 +2575,9 @@ static int tmd2771_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	obj->als_level_num = sizeof(obj->hw->als_level)/sizeof(obj->hw->als_level[0]);
 	obj->als_value_num = sizeof(obj->hw->als_value)/sizeof(obj->hw->als_value[0]);  
 	/*Lenovo-sw chenlj2 add 2011-06-03,modified gain 16 to 1/5 accoring to actual thing */
-	obj->als_modulus = (400*100*ZOOM_TIME)/(1*150);//(1/Gain)*(400/Tine), this value is fix after init ATIME and CONTROL register value
+//	obj->als_modulus = (400*100*ZOOM_TIME)/(1*150);//(1/Gain)*(400/Tine), this value is fix after init ATIME and CONTROL register value
+										//(400)/16*2.72 here is amplify *100 //16
+	obj->als_modulus = ((400*100)/(1*150))*(ZOOM_TIME/1000);//(1/Gain)*(400/Tine), this value is fix after init ATIME and CONTROL register value
 										//(400)/16*2.72 here is amplify *100 //16
 	BUG_ON(sizeof(obj->als_level) != sizeof(obj->hw->als_level));
 	memcpy(obj->als_level, obj->hw->als_level, sizeof(obj->als_level));
@@ -2403,6 +2602,13 @@ static int tmd2771_i2c_probe(struct i2c_client *client, const struct i2c_device_
 		APS_ERR("tmd2771_device register failed\n");
 		goto exit_misc_device_register_failed;
 	}
+/*
+	if(err = tmd2771_create_attr(&tmd2771_alsps_driver.driver))
+	{
+		APS_ERR("create attribute err = %d\n", err);
+		goto exit_create_attr_failed;
+	}
+*/
 	obj_ps.self = tmd2771_obj;
 	/*for interrup work mode support -- by liaoxl.lenovo 12.08.2011*/
 	if(1 == obj->hw->polling_mode_ps)
@@ -2458,6 +2664,12 @@ static int tmd2771_i2c_probe(struct i2c_client *client, const struct i2c_device_
 static int tmd2771_i2c_remove(struct i2c_client *client)
 {
 	int err;	
+/*	
+	if(err = tmd2771_delete_attr(&tmd2771_i2c_driver.driver))
+	{
+		APS_ERR("tmd2771_delete_attr fail: %d\n", err);
+	} 
+*/
 	if(err = misc_deregister(&tmd2771_device))
 	{
 		APS_ERR("misc_deregister fail: %d\n", err);    
