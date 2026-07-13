@@ -1,0 +1,1 @@
+cmd_../mediatek/platform/mt6575/kernel/drivers/dum-char/DumChar.o := arm-eabi-ld.bfd -EL    -r -o ../mediatek/platform/mt6575/kernel/drivers/dum-char/DumChar.o ../mediatek/platform/mt6575/kernel/drivers/dum-char/dumchar.o ../mediatek/platform/mt6575/kernel/drivers/dum-char/partition_define.o 
