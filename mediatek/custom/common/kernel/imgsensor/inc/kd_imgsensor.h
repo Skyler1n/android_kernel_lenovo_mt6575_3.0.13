@@ -1,3 +1,37 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
 #ifndef _KD_IMGSENSOR_H
 #define _KD_IMGSENSOR_H
@@ -17,7 +51,13 @@
 //X means "switch G and S atomically"
 //H means "switch T and Q atomically"
 
+/*******************************************************************************
+*
+********************************************************************************/
 
+/*******************************************************************************
+*
+********************************************************************************/
 
 //sensorOpen
 //This command will TBD
@@ -42,6 +82,9 @@
 //sensorSearch 
 #define KDIMGSENSORIOC_T_CHECK_IS_ALIVE     _IO(IMGSENSORMAGIC, 30) 
 
+/*******************************************************************************
+*
+********************************************************************************/
 /* SENSOR CHIP VERSION */
 #define MC501CB_SENSOR_ID                       0x0062
 #define MC501CC_SENSOR_ID                       0x0074
@@ -73,10 +116,12 @@
 #define OV2640_SENSOR_ID                        0x2642
 #define OV2650_SENSOR_ID                        0x2652
 #define OV3640_SENSOR_ID                        0x364C
+#define OV3660_SENSOR_ID                        0x3660
 #define OV6680_SENSOR_ID                        0x6681
 #define OV7660_SENSOR_ID                        0x7660
 #define OV7670_SENSOR_ID                        0x7673
 #define OV7680_SENSOR_ID                        0x7680
+#define OV7690_SENSOR_ID                        0x7691//LK@I3000,2011-12-15
 #define OV9650_SENSOR_ID                        0x9652
 #define OV9655_SENSOR_ID                        0x9657
 #define OV9660_SENSOR_ID                        0x9663
@@ -142,11 +187,11 @@
 #define MT9V114_SENSOR_ID                         0x2283
 #define MT9P015_SENSOR_ID                       0x2803
 #define MT9P017_SENSOR_ID                       0x4800
+#define GC0329_SENSOR_ID                        0x00c0
 #define MT9P017MIPI_SENSOR_ID                       0x4800
 #define SHARP3D_SENSOR_ID                       0x003d
+#define GC0309_SENSOR_ID                         0x00a0   //amy0309 
 #define MT9T113MIPI_SENSOR_ID                       0x4680
-#define IMX105_SENSOR_ID                        0x0105
-
 
 /* CAMERA DRIVER NAME */
 #define CAMERA_HW_DEVNAME            "kd_camera_hw"
@@ -170,6 +215,8 @@
 #define SENSOR_DRVNAME_OV5642_YUV   "ov5642yuv"
 #define SENSOR_DRVNAME_OV5642_YUV_SWI2C   "ov5642yuvswi2c"
 #define SENSOR_DRVNAME_OV7675_YUV   "ov7675yuv"
+#define SENSOR_DRVNAME_OV7690_YUV   "ov7690yuv"//LK@I3000,2011-12-15
+#define SENSOR_DRVNAME_OV3660_YUV    	"ov3660yuv"
 #define SENSOR_DRVNAME_IMX073_MIPI_RAW   "imx073mipiraw"
 #define SENSOR_DRVNAME_S5K5CAGX_YUV     "s5k5cagxyuv"
 #define SENSOR_DRVNAME_SIV120B_YUV    "siv120byuv"
@@ -180,7 +227,11 @@
 #define SENSOR_DRVNAME_PAS6180_SERIAL_YUV    "pas6180serialyuv"
 #define SENSOR_DRVNAME_SHARP3D_MIPI_YUV    "sharp3dmipiyuv"
 #define SENSOR_DRVNAME_MT9T113_MIPI_YUV    "mt9t113mipiyuv"
-#define SENSOR_DRVNAME_IMX105_MIPI_RAW   "imx105mipiraw"
+#define SENSOR_DRVNAME_GC0329_YUV   	"gc0329yuv"
+#define SENSOR_DRVNAME_GC0309_YUV      "gc0309yuv"
+/*******************************************************************************
+*
+********************************************************************************/
 
 void KD_IMGSENSOR_PROFILE_INIT(void); 
 void KD_IMGSENSOR_PROFILE(char *tag); 

@@ -1,4 +1,104 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2005
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE. 
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   RAW
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author:
+ * -------
+ *   HengJun (MTK70677)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ * 02 19 2012 koli.lin
+ * [ALPS00237113] [Performance][Video recording]Recording preview the screen have flash
+ * [Camera] 1. Modify the AE converge speed in the video mode.
+ *                2. Modify the isp gain delay frame with sensor exposure time and gain synchronization.
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
@@ -21,8 +121,8 @@
 MSDK_SCENARIO_ID_ENUM CurrentScenarioId = MSDK_SCENARIO_ID_CAMERA_PREVIEW;
 static kal_bool OV5647AutoFlicKerMode = KAL_FALSE;
 
-#define OV5647_DRIVER_TRACE
-#define OV5647_DEBUG
+//#define OV5647_DRIVER_TRACE
+//#define OV5647_DEBUG
 
 #ifdef OV5647_DEBUG
 #define SENSORDB printk
@@ -30,6 +130,9 @@ static kal_bool OV5647AutoFlicKerMode = KAL_FALSE;
 #define SENSORDB(x,...)
 #endif
 //#define ACDK
+
+static DEFINE_SPINLOCK(ov5647_drv_lock);
+
 extern int iReadRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u8 * a_pRecvData, u16 a_sizeRecvData, u16 i2cId);
 extern int iWriteRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u16 i2cId);
 UINT32 OV5647SetMaxFrameRate(UINT16 u2FrameRate);
@@ -133,22 +236,43 @@ UINT32 OV5647SetMaxFrameRate(UINT16 u2FrameRate)
 {
 	kal_int16 dummy_line;
 	kal_uint16 FrameHeight = OV5647_sensor.frame_height;
+	unsigned long flags;
 		
 	printk("[soso][OV5647SetMaxFrameRate]u2FrameRate=%d",u2FrameRate);
 
 	//dummy_line = OV5647_sensor.pclk / u2FrameRate / OV5647_PV_PERIOD_PIXEL_NUMS - OV5647_PV_PERIOD_LINE_NUMS;
 	FrameHeight= (10 * OV5647_sensor.pclk) / u2FrameRate / OV5647_sensor.line_length;
 	//if(FrameHeight>OV5647_sensor.frame_height){
+	     spin_lock_irqsave(&ov5647_drv_lock,flags);
 		OV5647_sensor.frame_height = FrameHeight;
+		spin_unlock_irqrestore(&ov5647_drv_lock,flags);
 		dummy_line = FrameHeight - OV5647_PV_PERIOD_LINE_NUMS;
 	    /* to fix VSYNC, to fix frame rate */
 		OV5647_Set_Dummy(0, dummy_line); /* modify dummy_pixel must gen AE table again */
 	//}
 }
 
+/*************************************************************************
+* FUNCTION
+*	OV5647_SetShutter
+*
+* DESCRIPTION
+*	This function set e-shutter of OV5647 to change exposure time.
+*
+* PARAMETERS
+*   iShutter : exposured lines
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void set_OV5647_shutter(kal_uint16 iShutter)
 {
+	spin_lock(&ov5647_drv_lock);
 	OV5647_sensor.shutter = iShutter;
+	spin_unlock(&ov5647_drv_lock);
     OV5647_Write_Shutter(iShutter);
 }   /*  Set_OV5647_Shutter */
 
@@ -168,6 +292,22 @@ static kal_uint16 OV5647Reg2Gain(const kal_uint8 iReg)
     return (kal_uint8)iReg;
 }
 
+/*************************************************************************
+* FUNCTION
+*	OV5647_SetGain
+*
+* DESCRIPTION
+*	This function is to set global gain to sensor.
+*
+* PARAMETERS
+*   iGain : sensor global gain(base: 0x40)
+*
+* RETURNS
+*	the actually gain set to sensor.
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint16 OV5647_SetGain(kal_uint16 iGain)
 {
 	kal_uint8 iReg;
@@ -182,6 +322,22 @@ kal_uint16 OV5647_SetGain(kal_uint16 iGain)
 	OV5647_write_cmos_sensor(0x350b, iReg);
 	return iGain;
 }
+/*************************************************************************
+* FUNCTION
+*	OV5647_NightMode
+*
+* DESCRIPTION
+*	This function night mode of OV5647.
+*
+* PARAMETERS
+*	bEnable: KAL_TRUE -> enable night mode, otherwise, disable night mode
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void OV5647_night_mode(kal_bool enable)
 {
 /*No Need to implement this function*/
@@ -224,17 +380,23 @@ static void OV5647_camera_para_to_sensor(void)
 /* update camera_para from sensor register */
 static void OV5647_sensor_to_camera_para(void)
 {
-  kal_uint32 i;
+  kal_uint32 i,temp_data;
 #ifdef OV5647_DRIVER_TRACE
    SENSORDB("OV5647_sensor_to_camera_para\n");
 #endif
   for (i = 0; 0xFFFFFFFF != OV5647_sensor.eng.reg[i].Addr; i++)
   {
-    OV5647_sensor.eng.reg[i].Para = OV5647_read_cmos_sensor(OV5647_sensor.eng.reg[i].Addr);
+  	temp_data = OV5647_read_cmos_sensor(OV5647_sensor.eng.reg[i].Addr);
+	spin_lock(&ov5647_drv_lock);
+    OV5647_sensor.eng.reg[i].Para = temp_data;
+	spin_unlock(&ov5647_drv_lock);
   }
   for (i = OV5647_FACTORY_START_ADDR; 0xFFFFFFFF != OV5647_sensor.eng.reg[i].Addr; i++)
   {
-    OV5647_sensor.eng.reg[i].Para = OV5647_read_cmos_sensor(OV5647_sensor.eng.reg[i].Addr);
+  	temp_data = OV5647_read_cmos_sensor(OV5647_sensor.eng.reg[i].Addr);
+	spin_lock(&ov5647_drv_lock);
+    OV5647_sensor.eng.reg[i].Para = temp_data;
+	spin_unlock(&ov5647_drv_lock);
   }
 }
 
@@ -389,7 +551,9 @@ inline static kal_bool OV5647_set_sensor_item_info(MSDK_SENSOR_ITEM_INFO_STRUCT 
     case OV5647_PRE_GAIN_Gr_INDEX:
     case OV5647_PRE_GAIN_Gb_INDEX:
     case OV5647_PRE_GAIN_B_INDEX:
+		spin_lock(&ov5647_drv_lock);
       OV5647_sensor.eng.cct[para->ItemIdx].Para = para->ItemValue * BASEGAIN / 1000;
+	  spin_unlock(&ov5647_drv_lock);
       OV5647_SetGain(OV5647_sensor.gain); /* update gain */
       break;
     default:
@@ -418,7 +582,9 @@ inline static kal_bool OV5647_set_sensor_item_info(MSDK_SENSOR_ITEM_INFO_STRUCT 
         break;
       }
       //OV5647_set_isp_driving_current(temp_para);
+      spin_lock(&ov5647_drv_lock);
       OV5647_sensor.eng.reg[OV5647_CMMCLK_CURRENT_INDEX].Para = temp_para;
+	  spin_unlock(&ov5647_drv_lock);
       break;
     default:
       ASSERT(0);
@@ -460,7 +626,7 @@ static void OV5647_Sensor_Init(void)
 	OV5647_write_cmos_sensor(0x0100, 0x00);
 	
 	OV5647_write_cmos_sensor(0x3011, 0x42);
-	OV5647_write_cmos_sensor(0x3013, 0x08);//0x04-->0x00-->0x08  Turn off internal LDO
+	OV5647_write_cmos_sensor(0x3013, 0x04);//0x04-->0x00-->0x08  Turn off internal LDO
 	OV5647_write_cmos_sensor(0x4708, 0x00);
 	OV5647_write_cmos_sensor(0x5000, 0x06);
 	OV5647_write_cmos_sensor(0x5003, 0x08);
@@ -568,8 +734,13 @@ static void OV5647_Sensor_1M(void)
 	//OV5647_write_cmos_sensor(0x3503, 0x03);  //;manual AE 					 
 	//OV5647_write_cmos_sensor(0x3035, 0x11); /* Debug mode  */
 	//OV5647_write_cmos_sensor(0x3036, 0x46); /*  PLL muitiplier */
-	OV5647_write_cmos_sensor(0x3821, 0x07); /*	timing tc reg21 */
-	OV5647_write_cmos_sensor(0x3820, 0x41); /*	timing tc reg20 */
+#if defined(SIMCOM_I5000)||defined(SIMCOM_I6000)
+	OV5647_write_cmos_sensor(0x3821, 0x01); /*	timing tc reg21  amy0509 0x07*/
+	OV5647_write_cmos_sensor(0x3820, 0x47); /*	timing tc reg20   amy0509 0x41*/
+#else
+	OV5647_write_cmos_sensor(0x3821, 0x07); /*	timing tc reg21  amy0509 0x07*/
+	OV5647_write_cmos_sensor(0x3820, 0x41); /*	timing tc reg20   amy0509 0x41*/
+#endif
 	OV5647_write_cmos_sensor(0x370c, 0x03); /*	Reserved */
 	OV5647_write_cmos_sensor(0x3612, 0x09); /*	Reserved */
 	OV5647_write_cmos_sensor(0x3618, 0x00); /*	Reserved */
@@ -676,11 +847,8 @@ static void OV5647_Sensor_5M(void)
 
 static void OV5647_Sensor_5M_15fps(void)
 {
-//kal_uint8 iTemp1 = OV5647_read_cmos_sensor(0x3820) & 0x06;
-//kal_uint8 iTemp2 = OV5647_read_cmos_sensor(0x3821) & 0x06;
-//kal_uint8 iTemp1 = OV5647_read_cmos_sensor(0x3820) & 0xF9;
-//kal_uint8 iTemp2 = OV5647_read_cmos_sensor(0x3821) & 0xF9;
-
+	//kal_uint8 iTemp1 = OV5647_read_cmos_sensor(0x3820) & 0x06;
+	//kal_uint8 iTemp2 = OV5647_read_cmos_sensor(0x3821) & 0x06;
 	OV5647_write_cmos_sensor( 0x0100, 0x00); 	//15fps
 	OV5647_write_cmos_sensor(0x4005, 0x1a); // update BLC, Jason
 	
@@ -690,9 +858,6 @@ static void OV5647_Sensor_5M_15fps(void)
 	OV5647_write_cmos_sensor( 0x303c, 0x11); 
 	//OV5647_write_cmos_sensor( 0x3821, iTemp2); 
 	//OV5647_write_cmos_sensor( 0x3820, iTemp1); 
-	OV5647_write_cmos_sensor(0x3820, 0x00); //Set mirror
-	OV5647_write_cmos_sensor(0x3821, 0x06);	//Set mirror
-
 	OV5647_write_cmos_sensor( 0x370c, 0x00); 
 	OV5647_write_cmos_sensor( 0x3612, 0x0b); 
 	OV5647_write_cmos_sensor( 0x3618, 0x04); 
@@ -743,6 +908,22 @@ static void OV5647_Sensor_5M_15fps(void)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*	OV5647Open
+*
+* DESCRIPTION
+*	This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 UINT32 OV5647Open(void)
 {
@@ -758,11 +939,28 @@ UINT32 OV5647Open(void)
 	
 	/* initail sequence write in  */
 	OV5647_Sensor_Init();
-
+	spin_lock(&ov5647_drv_lock);
 	OV5647AutoFlicKerMode = KAL_FALSE;
+	spin_unlock(&ov5647_drv_lock);
 	return ERROR_NONE;
 }   /* OV5647Open  */
 
+/*************************************************************************
+* FUNCTION
+*   OV5642GetSensorID
+*
+* DESCRIPTION
+*   This function get the sensor ID 
+*
+* PARAMETERS
+*   *sensorID : return the sensor ID 
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5642GetSensorID(UINT32 *sensorID) 
 {
 		// check if sensor ID correct
@@ -771,12 +969,29 @@ UINT32 OV5642GetSensorID(UINT32 *sensorID)
 	SENSORDB("OV5647Open, sensor_id:%x \n",*sensorID);
 #endif		
 	if (*sensorID != OV5647_SENSOR_ID) {		
+		*sensorID = 0xFFFFFFFF;		
 		return ERROR_SENSOR_CONNECT_FAIL;
 	}
 	
    return ERROR_NONE;
 }
 
+/*************************************************************************
+* FUNCTION
+*	OV5647Close
+*
+* DESCRIPTION
+*	This function is to turn off sensor module power.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5647Close(void)
 {
 #ifdef OV5647_DRIVER_TRACE
@@ -787,14 +1002,32 @@ UINT32 OV5647Close(void)
 	return ERROR_NONE;
 }   /* OV5647Close */
 
+/*************************************************************************
+* FUNCTION
+* OV5647Preview
+*
+* DESCRIPTION
+*	This function start the sensor preview.
+*
+* PARAMETERS
+*	*image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5647Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
 	kal_uint16 dummy_line;
 	
 	OV5647_Sensor_1M();
+	spin_lock(&ov5647_drv_lock);	
 	OV5647_sensor.pv_mode = KAL_TRUE;
-		printk("[meimei][OV5647Preview]0x3821=%x,0x3820=%d\n",OV5647_read_cmos_sensor(0x3821),OV5647_read_cmos_sensor(0x3820));
+	
 	//OV5647_set_mirror(sensor_config_data->SensorImageMirror);
 	switch (sensor_config_data->SensorOperationMode)
 	{
@@ -811,6 +1044,7 @@ UINT32 OV5647Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 #ifdef CAPTURE_15FPS
 	OV5647_sensor.pclk = OV5647_PREVIEW_CLK;
 #endif
+	spin_unlock(&ov5647_drv_lock);
 	OV5647_Set_Dummy(0, dummy_line); /* modify dummy_pixel must gen AE table again */
 	//OV5647_Write_Shutter(OV5647_sensor.shutter);
 	
@@ -818,6 +1052,21 @@ UINT32 OV5647Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 	return ERROR_NONE;
 }   /*  OV5647Preview   */
 
+/*************************************************************************
+* FUNCTION
+*	OV5647Capture
+*
+* DESCRIPTION
+*	This function setup the CMOS sensor in capture MY_OUTPUT mode
+*
+* PARAMETERS
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5647Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 						  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
@@ -825,25 +1074,28 @@ UINT32 OV5647Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 	kal_uint32 shutter = (kal_uint32)OV5647_sensor.shutter;
 	kal_uint16 dummy_pixel, cap_fps;
 	
-
+	spin_lock(&ov5647_drv_lock);
 	OV5647_sensor.video_mode = KAL_FALSE;
 	OV5647AutoFlicKerMode = KAL_FALSE;
-
+	spin_unlock(&ov5647_drv_lock);
 	//if(OV5647_sensor.pv_mode == KAL_TRUE)
 	{
-	
+		spin_lock(&ov5647_drv_lock);
 		OV5647_sensor.pv_mode = KAL_FALSE;
-	
+		spin_unlock(&ov5647_drv_lock);
 #ifdef CAPTURE_15FPS
 		OV5647_Sensor_5M_15fps();
+		spin_lock(&ov5647_drv_lock);
 		OV5647_sensor.pclk = 80600000;
+		spin_unlock(&ov5647_drv_lock);
 		cap_fps = OV5647_FPS(15);
-		printk("[meimei][OV5647ZSD]0x3821=%x,0x3820=%d\n",OV5647_read_cmos_sensor(0x3821),OV5647_read_cmos_sensor(0x3820));
 
 
 		OV5647_Set_Dummy(0, 0);
+		spin_lock(&ov5647_drv_lock);
 		OV5647_sensor.line_length = OV5647_FULL_PERIOD_PIXEL_NUMS;
 		OV5647_sensor.frame_height = OV5647_FULL_PERIOD_LINE_NUMS;
+		spin_unlock(&ov5647_drv_lock);
 		//806 is cpature PCLK  481 is preivew PCLK
 		//shutter = shutter * pv_line_length * 806/OV5647_sensor.line_length/481;
 		//shutter = shutter * (((kal_uint32)(pv_line_length * 806))/((kal_uint32)(OV5647_sensor.line_length * 481)));
@@ -853,16 +1105,18 @@ UINT32 OV5647Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 
 #else
 		OV5647_Sensor_5M();
+		spin_lock(&ov5647_drv_lock);
 		OV5647_sensor.pclk = OV5647_PREVIEW_CLK;
+		spin_unlock(&ov5647_drv_lock);
 
 		cap_fps = OV5647_FPS(8);
-		printk("[meimei][OV5647capture]0x3821=%x,0x3820=%d\n",OV5647_read_cmos_sensor(0x3821),OV5647_read_cmos_sensor(0x3820));
-
 		dummy_pixel = OV5647_sensor.pclk * OV5647_FPS(1) / (OV5647_FULL_PERIOD_LINE_NUMS * cap_fps);
 		dummy_pixel = dummy_pixel < OV5647_FULL_PERIOD_PIXEL_NUMS ? 0 : dummy_pixel - OV5647_FULL_PERIOD_PIXEL_NUMS;
 		OV5647_Set_Dummy(dummy_pixel, 0);
+		spin_lock(&ov5647_drv_lock);
 		OV5647_sensor.line_length = OV5647_FULL_PERIOD_PIXEL_NUMS+dummy_pixel;
 		OV5647_sensor.frame_height = OV5647_FULL_PERIOD_LINE_NUMS;
+		spin_unlock(&ov5647_drv_lock);
 
 		/* shutter translation */
 		shutter = shutter * pv_line_length / OV5647_sensor.line_length;
@@ -974,9 +1228,7 @@ UINT32 OV5647Control(MSDK_SCENARIO_ID_ENUM ScenarioId, MSDK_SENSOR_EXPOSURE_WIND
 		case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
 		case MSDK_SCENARIO_ID_CAMERA_CAPTURE_MEM:
 		case MSDK_SCENARIO_ID_CAMERA_ZSD:
-		
 			OV5647Capture(pImageWindow, pSensorConfigData);
-				printk("ABCDEFG1233456789");
 		break;		
         default:
             return ERROR_INVALID_SCENARIO_ID;
@@ -990,18 +1242,19 @@ UINT32 OV5647Control(MSDK_SCENARIO_ID_ENUM ScenarioId, MSDK_SENSOR_EXPOSURE_WIND
 UINT32 OV5647SetVideoMode(UINT16 u2FrameRate)
 {
 	//printk("[soso][OV5647SetMaxFrameRate]u2FrameRate=%d",u2FrameRate);
+	spin_lock(&ov5647_drv_lock);
 	OV5647_sensor.video_mode = KAL_TRUE;
 
 	if(u2FrameRate == 30){
 		OV5647_sensor.NightMode = KAL_FALSE;
 	}else if(u2FrameRate == 15){
 		OV5647_sensor.NightMode = KAL_TRUE;
-	}else if(0 == u2FrameRate){
-		printk("in func %s, u2FrameRate=%d",__func__,u2FrameRate);
-              return;
+	}else{
+		// TODO: Wrong configuratioin
 	}
 	
 	OV5647_sensor.FixedFps = u2FrameRate;
+	spin_unlock(&ov5647_drv_lock);
 
 	if((u2FrameRate == 30)&&(OV5647AutoFlicKerMode==KAL_TRUE))
 		u2FrameRate = 296;
@@ -1017,13 +1270,16 @@ UINT32 OV5647SetAutoFlickerMode(kal_bool bEnable, UINT16 u2FrameRate)
 {
 
 	if(bEnable){
+		spin_lock(&ov5647_drv_lock);
 		OV5647AutoFlicKerMode = KAL_TRUE;
-
+		spin_unlock(&ov5647_drv_lock);
 		/*Change frame rate 29.5fps to 29.8fps to do Auto flick*/
 		if((OV5647_sensor.FixedFps == 30)&&(OV5647_sensor.video_mode==KAL_TRUE))
 			OV5647SetMaxFrameRate(296);
 	}else{//Cancel Auto flick
+		spin_lock(&ov5647_drv_lock);
 		OV5647AutoFlicKerMode = KAL_FALSE;
+		spin_unlock(&ov5647_drv_lock);
 		if((OV5647_sensor.FixedFps == 30)&&(OV5647_sensor.video_mode==KAL_TRUE))
 			OV5647SetMaxFrameRate(300);
 	}

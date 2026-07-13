@@ -1,4 +1,128 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2008
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   YUSU
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author:
+ * -------
+ *   Jackie Su (MTK02380)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ * 03 15 2011 koli.lin
+ * [ALPS00034474] [Need Patch] [Volunteer Patch]
+ * Move sensor driver current setting to isp of middleware.
+ *
+ * 10 12 2010 koli.lin
+ * [ALPS00127101] [Camera] AE will flash
+ * [Camera]Create Vsync interrupt to handle the exposure time, sensor gain and raw gain control.
+ *
+ * 08 27 2010 ronnie.lai
+ * [DUMA00032601] [Camera][ISP]
+ * Check in AD5820 Constant AF function.
+ *
+ * 08 26 2010 ronnie.lai
+ * [DUMA00032601] [Camera][ISP]
+ * Add AD5820 Lens driver function.
+ * must disable SWIC and bus log, otherwise the lens initial time take about 30 second.(without log about 3 sec)
+ *
+ * 08 19 2010 ronnie.lai
+ * [DUMA00032601] [Camera][ISP]
+ * Merge dual camera relative settings. Main OV5642, SUB O7675 ready.
+ *
+ * 08 18 2010 ronnie.lai
+ * [DUMA00032601] [Camera][ISP]
+ * Mmodify ISP setting and add OV5642 sensor driver.
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 #define WINMO_USE           0
 
  #if WINMO_USE
@@ -45,6 +169,17 @@
 
 
 
+/*
+DBGPARAM dpCurSettings = {
+    TEXT("Sensor"), {
+        TEXT("Preview"),TEXT("Capture"),TEXT("Init"),TEXT("Error"),
+        TEXT("Gain"),TEXT("Shutter"),TEXT("Undef"),TEXT("Undef"),
+        TEXT("Undef"),TEXT("Undef"),TEXT("Undef"),TEXT("Undef"),
+        TEXT("Undef"),TEXT("Undef"),TEXT("Undef"),TEXT("Undef")},
+    0x00FF	// ZONE_INIT | ZONE_WARNING | ZONE_ERROR
+};
+
+*/
 kal_bool  OV5642YUV_MPEG4_encode_mode = KAL_FALSE;
 kal_uint16  OV5642YUV_sensor_gain_base=0x0;
 /* MAX/MIN Explosure Lines Used By AE Algorithm */
@@ -327,6 +462,22 @@ static kal_uint8 OV5642YUVGain2Reg(const kal_uint16 iGain)
 
 }
 
+/*************************************************************************
+* FUNCTION
+*    OV5642YUV_SetGain
+*
+* DESCRIPTION
+*    This function is to set global gain to sensor.
+*
+* PARAMETERS
+*    gain : sensor global gain(base: 0x40)
+*
+* RETURNS
+*    the actually gain set to sensor.
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 //! Due to the OV5642 set gain will happen race condition. 
 //! It need to use a critical section to protect it. 
 static atomic_t OV5642_SetGain_Flag; 
@@ -373,6 +524,22 @@ void OV5642YUV_SetGain(UINT16 iGain)
 }   /*  OV5642YUV_SetGain  */
 
 
+/*************************************************************************
+* FUNCTION
+*    read_OV5642YUV_gain
+*
+* DESCRIPTION
+*    This function is to set global gain to sensor.
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint16 read_OV5642YUV_gain(void)
 {
 
@@ -406,6 +573,22 @@ void OV5642YUV_camera_para_to_sensor(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*    OV5642YUV_sensor_to_camera_para
+*
+* DESCRIPTION
+*    // update camera_para from sensor register
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void OV5642YUV_sensor_to_camera_para(void)
 {
     kal_uint32    i;
@@ -420,6 +603,22 @@ void OV5642YUV_sensor_to_camera_para(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*    OV5642YUV_get_sensor_group_count
+*
+* DESCRIPTION
+*    //
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_int32  OV5642YUV_get_sensor_group_count(void)
 {
     return GROUP_TOTAL_NUMS;
@@ -765,6 +964,9 @@ void OV5642YUV_set_5M_init(void);
 
 static UINT32 OV5642_FOCUS_AD5820_Init(void);
 
+/*******************************************************************************
+*
+********************************************************************************/
 static UINT32 OV5642YUV_Sensor_Init(void)
 {
     SENSORDB("lln:: OV5642YUV_Sensor_Init, use OV5642YUV_Sensor_Init_set_720P");
@@ -2258,6 +2460,22 @@ void OV5642YUV_dump_5M(void)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*   OV5642YUVOpen
+*
+* DESCRIPTION
+*   This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 UINT32 OV5642YUVOpen(void)
 {
@@ -2306,6 +2524,22 @@ UINT32 OV5642YUVOpen(void)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   OV5642YUV_SetShutter
+*
+* DESCRIPTION
+*   This function set e-shutter of OV5642 to change exposure time.
+*
+* PARAMETERS
+*   shutter : exposured lines
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void OV5642YUV_SetShutter(kal_uint16 iShutter)
 {
 #if 0 
@@ -2327,6 +2561,22 @@ void OV5642YUV_SetShutter(kal_uint16 iShutter)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   OV5642YUV_read_shutter
+*
+* DESCRIPTION
+*   This function to  Get exposure time.
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   shutter : exposured lines
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT16 OV5642YUV_read_shutter(void)
 {
     kal_uint8 temp_reg1, temp_reg2, temp_reg3;
@@ -2344,6 +2594,22 @@ UINT16 OV5642YUV_read_shutter(void)
     return (UINT16)temp_reg;
 }
 
+/*************************************************************************
+* FUNCTION
+*   OV5642_night_mode
+*
+* DESCRIPTION
+*   This function night mode of OV5642.
+*
+* PARAMETERS
+*   none
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void OV5642YUV_NightMode(kal_bool bEnable)
 {
     /************************************************************************/
@@ -2379,6 +2645,22 @@ void OV5642YUV_NightMode(kal_bool bEnable)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   OV5642YUVClose
+*
+* DESCRIPTION
+*   This function is to turn off sensor module power.
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5642YUVClose(void)
 {
     //  CISModulePowerOn(FALSE);
@@ -2389,6 +2671,22 @@ UINT32 OV5642YUVClose(void)
     return ERROR_NONE;
 }	/* OV5642YUVClose() */
 
+/*************************************************************************
+* FUNCTION
+*   OV5642_FOCUS_AD5820_Init
+*
+* DESCRIPTION
+*   This function is to load micro code for AF function
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static u8 AD5820_Config[] = {    
      0x02,
      0x00,
@@ -13067,11 +13365,26 @@ void OV5642YUV_Set_Mirror_Flip(kal_uint8 image_mirror)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*   OV5642YUVPreview
+*
+* DESCRIPTION
+*   This function start the sensor preview.
+*
+* PARAMETERS
+*   *image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5642YUVPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
                                                 MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
-    SENSORDB("OV5642YUVPreview E\n");
-
     kal_uint16 iStartX = 0, iStartY = 0;
 
     g_iOV5642YUV_Mode = OV5642_MODE_PREVIEW;
@@ -13142,8 +13455,6 @@ UINT32 OV5642YUVPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
     image_window->GrabStartY= iStartY;
     image_window->ExposureWindowWidth= OV5642_IMAGE_SENSOR_PV_WIDTH - 2*iStartX;
     image_window->ExposureWindowHeight= OV5642_IMAGE_SENSOR_PV_HEIGHT - 2*iStartY;
-
-    SENSORDB("OV5642YUVPreview X\n");
     return ERROR_NONE;
 }	/* OV5642YUVPreview() */
 
@@ -13158,7 +13469,7 @@ UINT32 OV5642YUVCapture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
     kal_uint32 pv_gain = 0;	
     kal_uint8 temp = 0;//for night mode	
 
-    SENSORDB("OV5642YUVCapture E\n");
+   
 
     SENSORDB("Preview Shutter = %d, Gain = %d\n", shutter, read_OV5642YUV_gain());    
 
@@ -13260,7 +13571,6 @@ UINT32 OV5642YUVCapture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
         OV5642YUV_read_cmos_sensor(0x3406));
     SENSORDB("Capture Shutter = %d, Gain = %d\n", shutter, read_OV5642YUV_gain());     
     memcpy(&OV5642YUVSensorConfigData, sensor_config_data, sizeof(MSDK_SENSOR_CONFIG_STRUCT));
-    SENSORDB("OV5642YUVCapture X\n");
 
     return ERROR_NONE;
 }	/* OV5642YUVCapture() */
@@ -13271,10 +13581,6 @@ UINT32 OV5642YUVGetResolution(MSDK_SENSOR_RESOLUTION_INFO_STRUCT *pSensorResolut
     pSensorResolution->SensorFullHeight=IMAGE_SENSOR_FULL_HEIGHT - 4*OV5642_IMAGE_SENSOR_PV_STARTY;
     pSensorResolution->SensorPreviewWidth=IMAGE_SENSOR_PV_WIDTH - 2*OV5642_IMAGE_SENSOR_PV_STARTX;
     pSensorResolution->SensorPreviewHeight=IMAGE_SENSOR_PV_HEIGHT - 2*OV5642_IMAGE_SENSOR_PV_STARTY;
-
-    pSensorResolution->SensorFullWidth=pSensorResolution->SensorPreviewWidth;
-    pSensorResolution->SensorFullHeight=pSensorResolution->SensorPreviewHeight;    
-
 
     return ERROR_NONE;
 }   /* OV5642YUVGetResolution() */
@@ -13391,15 +13697,12 @@ UINT32 OV5642YUVControl(MSDK_SCENARIO_ID_ENUM ScenarioId, MSDK_SENSOR_EXPOSURE_W
         case MSDK_SCENARIO_ID_CAMERA_PREVIEW:
         case MSDK_SCENARIO_ID_VIDEO_PREVIEW:
         case MSDK_SCENARIO_ID_VIDEO_CAPTURE_MPEG4:
-            SENSORDB("OV5642YUVControl MSDK_SCENARIO_ID_CAMERA_PREVIEW!\n");
             OV5642YUVPreview(pImageWindow, pSensorConfigData);
             break;
         case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
         case MSDK_SCENARIO_ID_CAMERA_CAPTURE_MEM:
-            //OV5642YUVCapture(pImageWindow, pSensorConfigData);
-            SENSORDB("OV5642YUVControl MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG changed!\n");
-            OV5642YUVPreview(pImageWindow, pSensorConfigData);
-
+            OV5642YUVCapture(pImageWindow, pSensorConfigData);
+            break;
             //s_porting add
             //s_porting add
             //s_porting add
@@ -13460,6 +13763,22 @@ UINT32 OV5642YUVSensorSetting(FEATURE_ID iCmd, UINT32 iPara)
 
 }
 
+/*************************************************************************
+* FUNCTION
+*   OV5642YUVGetSensorID
+*
+* DESCRIPTION
+*   This function get the sensor ID 
+*
+* PARAMETERS
+*   *sensorID : return the sensor ID 
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5642YUVGetSensorID(UINT32 *sensorID) 
 {
     int  retry = 3; 
@@ -13479,24 +13798,6 @@ UINT32 OV5642YUVGetSensorID(UINT32 *sensorID)
     }
     return ERROR_NONE;
 }
-
-
-static void OV5642_FOCUS_AD5820_Get_AF_Max_Num_Focus_Areas(UINT32 *pFeatureReturnPara32)
-{ 	
-    
-    *pFeatureReturnPara32 = 1;    
-    SENSORDB(" *pFeatureReturnPara32 = %d\n",  *pFeatureReturnPara32);	
-}
-
-static void OV5642_FOCUS_AD5820_Get_AE_Max_Num_Metering_Areas(UINT32 *pFeatureReturnPara32)
-{ 	
-    
-    *pFeatureReturnPara32 = 0;    
-    SENSORDB(" *pFeatureReturnPara32 = %d\n",  *pFeatureReturnPara32);	
-}
-
-
-
 UINT32 OV5642YUVFeatureControl(MSDK_SENSOR_FEATURE_ENUM FeatureId,
                                                                 UINT8 *pFeaturePara,UINT32 *pFeatureParaLen)
 {    
@@ -13663,15 +13964,6 @@ UINT32 OV5642YUVFeatureControl(MSDK_SENSOR_FEATURE_ENUM FeatureId,
             *pFeatureReturnPara32=LENS_DRIVER_ID_DO_NOT_CARE;
             *pFeatureParaLen=4;
             break;
-
-        case SENSOR_FEATURE_GET_AF_MAX_NUM_FOCUS_AREAS:
-            OV5642_FOCUS_AD5820_Get_AF_Max_Num_Focus_Areas(pFeatureReturnPara32);            
-            *pFeatureParaLen=4;
-            break;        
-        case SENSOR_FEATURE_GET_AE_MAX_NUM_METERING_AREAS:
-            OV5642_FOCUS_AD5820_Get_AE_Max_Num_Metering_Areas(pFeatureReturnPara32);            
-            *pFeatureParaLen=4;
-            break;      
 
         case SENSOR_FEATURE_INITIALIZE_AF:
             //as ov3640, OV5642_FOCUS_AD5820_Init() may fail, 0x3027 = 0x7F

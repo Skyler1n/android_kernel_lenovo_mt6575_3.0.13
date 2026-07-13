@@ -1,3 +1,78 @@
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2008
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   ALPS
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author: 
+ * -------
+ *   Anyuan Huang (MTK70663)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ * 05 17 2011 koli.lin
+ * [ALPS00048684] [Need Patch] [Volunteer Patch]
+ * [Camera] Add the sensor software power down mode.
+ *
+ * 03 09 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * Add the SIV120B sensor driver for MT6575 LDVT.
+ *
+ *
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
@@ -737,11 +812,36 @@ static void SIV120BInitialSetting(void)
   SIV120DWriteCmosSensor(0x03,0xA5); //0x55
 }
 
+/*************************************************************************
+* FUNCTION
+*    SIV120DHalfAdjust
+*
+* DESCRIPTION
+*    This function dividend / divisor and use round-up.
+*
+* PARAMETERS
+*    dividend
+*    divisor
+*
+* RETURNS
+*    [dividend / divisor]
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 __inline static kal_uint32 SIV120DHalfAdjust(kal_uint32 dividend, kal_uint32 divisor)
 {
   return (dividend * 2 + divisor) / (divisor * 2); /* that is [dividend / divisor + 0.5]*/
 }
 
+/*************************************************************************
+* FUNCTION
+*   SIV120DSetShutterStep
+*
+* DESCRIPTION
+*   This function is to calculate & set shutter step register .
+*
+*************************************************************************/
 static void SIV120DSetShutterStep(void)
 {       
   const kal_uint8 banding = SIV120DCurrentStatus.iBanding == AE_FLICKER_MODE_50HZ ? SIV120D_NUM_50HZ : SIV120D_NUM_60HZ;
@@ -759,6 +859,14 @@ static void SIV120DSetShutterStep(void)
   SENSORDB("Set Shutter Step:%x\n",shutter_step);
 }/* SIV120DSetShutterStep */
 
+/*************************************************************************
+* FUNCTION
+*   SIV120DSetFrameCount
+*
+* DESCRIPTION
+*   This function is to set frame count register .
+*
+*************************************************************************/
 static void SIV120DSetFrameCount(void)
 {    
   kal_uint16 Frame_Count,min_fps = 100;
@@ -778,6 +886,22 @@ static void SIV120DSetFrameCount(void)
   SIV120DWriteCmosSensor(0x11,Frame_Count&0xFF);    
 }/* SIV120DSetFrameCount */
 
+/*************************************************************************
+* FUNCTION
+*   SIV120DConfigBlank
+*
+* DESCRIPTION
+*   This function is to set Blank size for Preview mode .
+*
+* PARAMETERS
+*   iBlank: target HBlank size
+*      iHz: banding frequency
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static void SIV120DConfigBlank(kal_uint16 hblank,kal_uint16 vblank)
 {    
   SENSORDB("hblank:%x,vblank:%x\n",hblank,vblank);
@@ -801,6 +925,23 @@ static void SIV120DConfigBlank(kal_uint16 hblank,kal_uint16 vblank)
   SIV120DSetShutterStep();
 }   /* SIV120DConfigBlank */
 
+/*************************************************************************
+* FUNCTION
+*    SIV120DCalFps
+*
+* DESCRIPTION
+*    This function calculate & set frame rate and fix frame rate when video mode
+*    MUST BE INVOKED AFTER SIM120C_preview() !!!
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void SIV120DCalFps(void)
 {
   kal_uint16 Line_length,Dummy_Line,Dummy_Pixel;
@@ -832,6 +973,14 @@ static void SIV120DCalFps(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*   SIV120DFixFrameRate
+*
+* DESCRIPTION
+*   This function fix the frame rate of image sensor.
+*
+*************************************************************************/
 static void SIV120DFixFrameRate(kal_bool bEnable)
 {
   if(SIV120DCurrentStatus.bFixFrameRate == bEnable)
@@ -850,6 +999,14 @@ static void SIV120DFixFrameRate(kal_bool bEnable)
   SIV120DWriteCmosSensor(0x04,SIV120DCurrentStatus.iControl);
 }   /* SIV120DFixFrameRate */
 
+/*************************************************************************
+* FUNCTION
+*   SIV120DHVmirror
+*
+* DESCRIPTION
+*   This function config the HVmirror of image sensor.
+*
+*************************************************************************/
 static void SIV120DHVmirror(kal_uint8 HVmirrorType)
 {    
   if(SIV120DCurrentStatus.iMirror == HVmirrorType)
@@ -876,6 +1033,22 @@ static void SIV120DHVmirror(kal_uint8 HVmirrorType)
   SIV120DWriteCmosSensor(0x04,SIV120DCurrentStatus.iControl);
 }   /* SIV120DHVmirror */
 
+/*************************************************************************
+* FUNCTION
+*  SIV120DNightMode
+*
+* DESCRIPTION
+*  This function night mode of SIV120D.
+*
+* PARAMETERS
+*  none
+*
+* RETURNS
+*  None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void SIV120DNightMode(kal_bool enable)
 {
   SENSORDB("NightMode %d\n",enable);
@@ -915,6 +1088,22 @@ void SIV120DNightMode(kal_bool enable)
   SIV120DSetFrameCount(); 
 }  /* SIV120DNightMode */
 
+/*************************************************************************
+* FUNCTION
+*  SIV120DOpen
+*
+* DESCRIPTION
+*  This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*  None
+*
+* RETURNS
+*  None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 SIV120DOpen(void)
 {
 
@@ -947,12 +1136,45 @@ UINT32 SIV120DOpen(void)
   return ERROR_NONE;
 }  /* SIV120DOpen() */
 
+/*************************************************************************
+* FUNCTION
+*  SIV120DClose
+*
+* DESCRIPTION
+*  This function is to turn off sensor module power.
+*
+* PARAMETERS
+*  None
+*
+* RETURNS
+*  None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 SIV120DClose(void)
 {
 //  CISModulePowerOn(FALSE);
   return ERROR_NONE;
 }  /* SIV120DClose() */
 
+/*************************************************************************
+* FUNCTION
+*  SIV120DPreview
+*
+* DESCRIPTION
+*  This function start the sensor preview.
+*
+* PARAMETERS
+*  *image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*  None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 SIV120DPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
             MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {

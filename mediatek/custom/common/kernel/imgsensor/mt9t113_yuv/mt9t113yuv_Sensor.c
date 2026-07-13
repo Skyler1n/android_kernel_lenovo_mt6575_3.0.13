@@ -1,4 +1,280 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2008
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   DUMA
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author:
+ * -------
+ *   PC Huang (MTK02204)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ * 10 27 2010 sean.cheng
+ * [ALPS00130222] [MPEG4 recording] Frame rate is 30fps by nigh mode
+ * .check in for YUV night mode fps = 15
+ *
+ * 10 13 2010 sean.cheng
+ * [ALPS00021684] [Need Patch] [Volunteer Patch] CCT new feature
+ * .
+ *
+ * 09 10 2010 jackie.su
+ * [ALPS00002279] [Need Patch] [Volunteer Patch] ALPS.Wxx.xx Volunteer patch for
+ * .10y dual sensor
+ *
+ * 09 02 2010 jackie.su
+ * [ALPS00002279] [Need Patch] [Volunteer Patch] ALPS.Wxx.xx Volunteer patch for
+ * .roll back dual sensor
+ *
+ * 07 27 2010 sean.cheng
+ * [ALPS00003112] [Need Patch] [Volunteer Patch] ISP/Sensor driver modification for Customer support
+ * .1. add master clock switcher 
+ *  2. add master enable/disable 
+ *  3. add dummy line/pixel for sensor 
+ *  4. add sensor driving current setting
+ *
+ * 07 19 2010 sean.cheng
+ * [ALPS00002994][Need Patch] [Volunteer Patch] E1K YUV sensor update customer parameters 
+ * .Optimize the sensor paramter & flicker caputre shutter setting
+ *
+ * 07 06 2010 sean.cheng
+ * [ALPS00121501][Need Resolved][E1K][camera]The preview display abnormal when switch scen mode between auto  and night 
+ * .Remove the gamma setting in night mode
+ *
+ * 07 06 2010 sean.cheng
+ * [ALPS00121385][Camera] set EV as one non-zero value, after capturing one iamge , the value seems to be set to zero 
+ * .change effect_off setting to reserve the EV setting
+ *
+ * 07 02 2010 sean.cheng
+ * [ALPS00121364][Camera] when set AE value, the effect is disabled 
+ * .Modify exposure setting to let effect remain
+ *
+ * 07 01 2010 sean.cheng
+ * [ALPS00121215][Camera] Change color when switch low and high 
+ * .Add video delay frame.
+ *
+ * 06 18 2010 sean.cheng
+ * [ALPS00008131][E1K][Camera]Screen will flash some times in this case 
+ * .Add 2 frame delay for capture back to preview
+ *
+ * 06 13 2010 sean.cheng
+ * [ALPS00002514][Need Patch] [Volunteer Patch] ALPS.10X.W10.11 Volunteer patch for E1k Camera 
+ * .Modify e1k sensor setting
+ *
+ * 06 13 2010 sean.cheng
+ * [ALPS00002514][Need Patch] [Volunteer Patch] ALPS.10X.W10.11 Volunteer patch for E1k Camera 
+ * .
+ * 1. Add set zoom factor and capdelay frame for YUV sensor 
+ * 2. Modify e1k sensor setting
+ *
+ * 06 09 2010 sean.cheng
+ * [ALPS00007960][E1K][Camera]There will be a yellow block show on screen left side when preview 
+ * .Change the VGA setting
+ *
+ * 05 27 2010 sean.cheng
+ * [ALPS00002309][Need Patch] [Volunteer Patch] ALPS.10X.W10.24 Volunteer patch for E1k YUV Sensor support 
+ * .
+ * Update MT9T113 yuv sensor init setting
+ *
+ * 05 26 2010 sean.cheng
+ * [ALPS00001357][Meta]CameraTool 
+ * .
+ * Update MT9T113 yuv sensor init setting
+ *
+ * 05 25 2010 sean.cheng
+ * [ALPS00001357][Meta]CameraTool 
+ * .
+ * Add MT9T113 YUV sensor driver support
+ *
+ * 05 03 2010 sean.cheng
+ * [ALPS00001357][Meta]CameraTool 
+ * .
+ * Fix MT9T113 YUV sensor frame rate to 30fps in vidoe mode
+ *
+ * Mar 4 2010 mtk70508
+ * [DUMA00154792] Sensor driver
+ * 
+ *
+ * Mar 4 2010 mtk70508
+ * [DUMA00154792] Sensor driver
+ * 
+ *
+ * Mar 1 2010 mtk01118
+ * [DUMA00025869] [Camera][YUV I/F & Query feature] check in camera code
+ * 
+ *
+ * Feb 24 2010 mtk01118
+ * [DUMA00025869] [Camera][YUV I/F & Query feature] check in camera code
+ * 
+ *
+ * Nov 24 2009 mtk02204
+ * [DUMA00015869] [Camera Driver] Modifiy camera related drivers for dual/backup sensor/lens drivers.
+ * 
+ *
+ * Oct 29 2009 mtk02204
+ * [DUMA00015869] [Camera Driver] Modifiy camera related drivers for dual/backup sensor/lens drivers.
+ * 
+ *
+ * Oct 27 2009 mtk02204
+ * [DUMA00015869] [Camera Driver] Modifiy camera related drivers for dual/backup sensor/lens drivers.
+ * 
+ *
+ * Aug 13 2009 mtk01051
+ * [DUMA00009217] [Camera Driver] CCAP First Check In
+ * 
+ *
+ * Aug 5 2009 mtk01051
+ * [DUMA00009217] [Camera Driver] CCAP First Check In
+ * 
+ *
+ * Jul 17 2009 mtk01051
+ * [DUMA00009217] [Camera Driver] CCAP First Check In
+ * 
+ *
+ * Jul 7 2009 mtk01051
+ * [DUMA00008051] [Camera Driver] Add drivers for camera high ISO binning mode.
+ * Add ISO query info for Sensor
+ *
+ * May 18 2009 mtk01051
+ * [DUMA00005921] [Camera] LED Flashlight first check in
+ * 
+ *
+ * May 16 2009 mtk01051
+ * [DUMA00005921] [Camera] LED Flashlight first check in
+ * 
+ *
+ * May 16 2009 mtk01051
+ * [DUMA00005921] [Camera] LED Flashlight first check in
+ * 
+ *
+ * Apr 7 2009 mtk02204
+ * [DUMA00004012] [Camera] Restructure and rename camera related custom folders and folder name of came
+ * 
+ *
+ * Mar 27 2009 mtk02204
+ * [DUMA00002977] [CCT] First check in of MT6516 CCT drivers
+ *
+ *
+ * Mar 25 2009 mtk02204
+ * [DUMA00111570] [Camera] The system crash after some operations
+ *
+ *
+ * Mar 20 2009 mtk02204
+ * [DUMA00002977] [CCT] First check in of MT6516 CCT drivers
+ *
+ *
+ * Mar 2 2009 mtk02204
+ * [DUMA00001084] First Check in of MT6516 multimedia drivers
+ *
+ *
+ * Feb 24 2009 mtk02204
+ * [DUMA00001084] First Check in of MT6516 multimedia drivers
+ *
+ *
+ * Dec 27 2008 MTK01813
+ * DUMA_MBJ CheckIn Files
+ * created by clearfsimport
+ *
+ * Dec 10 2008 mtk02204
+ * [DUMA00001084] First Check in of MT6516 multimedia drivers
+ *
+ *
+ * Oct 27 2008 mtk01051
+ * [DUMA00000851] Camera related drivers check in
+ * Modify Copyright Header
+ *
+ * Oct 24 2008 mtk02204
+ * [DUMA00000851] Camera related drivers check in
+ *
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 //#include <windows.h>
 //#include <memory.h>
 //#include <nkintr.h>
@@ -87,6 +363,9 @@ inline int MT9T113_write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
 
 
 
+/*******************************************************************************
+* // Adapter for Winmo typedef 
+********************************************************************************/
 #define WINMO_USE 0
 
 #define Sleep(ms) mdelay(ms)
@@ -94,6 +373,9 @@ inline int MT9T113_write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
 #define TEXT
 
 
+/*******************************************************************************
+* // End Adapter for Winmo typedef 
+********************************************************************************/
 
 
 #define	MT9T113_LIMIT_EXPOSURE_LINES				(1253)
@@ -306,6 +588,22 @@ static void MT9T113_write_shutter(kal_uint16 shutter)
 }    /* MT9T113_write_shutter */
 
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_NightMode
+*
+* DESCRIPTION
+*	This function night mode of MT9T113.
+*
+* PARAMETERS
+*	none
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void MT9T113_night_mode(kal_bool enable)
 {
 	//kal_uint16 night = 0;
@@ -1467,6 +1765,21 @@ static void MT9T113_set_QXGA_mode(void)
   //MT9T113_write_cmos_sensor(0x3013,0xf2);	 // ; disable AEC/AGC
 	
 }
+/*************************************************************************
+* FUNCTION
+*	MT9T113_Set_Video_Frame_Rate
+*
+* DESCRIPTION
+*	This function set the sensor output frmae to target frame and fix the frame rate for 
+*	video encode.
+*
+* PARAMETERS
+*	1. kal_uint32 : Target frame rate to fixed.
+*
+* RETURNS
+*	None
+*
+*************************************************************************/
 static void MT9T113_Set_Video_Frame_Rate(kal_uint32 frame_rate)
 {
 	kal_uint32 line_length;
@@ -1539,6 +1852,22 @@ static void MT9T113_Set_Video_Frame_Rate(kal_uint32 frame_rate)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*	MT9T113Open
+*
+* DESCRIPTION
+*	This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 MT9T113Open(void)
 {
 	volatile signed char i;
@@ -1632,6 +1961,22 @@ static kal_uint32 MT9T113_GetSensorID(kal_uint32 *sensorID)
 	}
     return ERROR_NONE;    
 }   /* MT9T113Open  */
+/*************************************************************************
+* FUNCTION
+*	MT9T113Close
+*
+* DESCRIPTION
+*	This function is to turn off sensor module power.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 MT9T113Close(void)
 {
 //	CISModulePowerOn(FALSE);
@@ -1724,6 +2069,20 @@ static void MT9T113_set_mirror_flip(kal_uint8 image_mirror)
     }
 }
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_awb_enable
+*
+* DESCRIPTION
+*	This function enable or disable the awb (Auto White Balance).
+*
+* PARAMETERS
+*	1. kal_bool : KAL_TRUE - enable awb, KAL_FALSE - disable awb.
+*
+* RETURNS
+*	kal_bool : It means set awb right or not.
+*
+*************************************************************************/
 static kal_bool MT9T113_awb_enable(kal_bool enalbe)
 {	 
 	kal_uint16 temp_AWB_reg = 0;
@@ -1731,6 +2090,20 @@ static kal_bool MT9T113_awb_enable(kal_bool enalbe)
 	return KAL_TRUE;
 }
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_ae_enable
+*
+* DESCRIPTION
+*	This function enable or disable the ae (Auto Exposure).
+*
+* PARAMETERS
+*	1. kal_bool : KAL_TRUE - enable ae, KAL_FALSE - disable awb.
+*
+* RETURNS
+*	kal_bool : It means set awb right or not.
+*
+*************************************************************************/
 static kal_bool MT9T113_ae_enable(kal_bool enalbe)
 {	 
 	kal_uint16 temp_AE_reg = 0;
@@ -1738,6 +2111,23 @@ static kal_bool MT9T113_ae_enable(kal_bool enalbe)
 	return KAL_TRUE;
 }
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113Preview
+*
+* DESCRIPTION
+*	This function start the sensor preview.
+*
+* PARAMETERS
+*	*image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 MT9T113Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 
@@ -2050,6 +2440,22 @@ UINT32 MT9T113Control(MSDK_SCENARIO_ID_ENUM ScenarioId, MSDK_SENSOR_EXPOSURE_WIN
 
 
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_set_param_wb
+*
+* DESCRIPTION
+*	wb setting.
+*
+* PARAMETERS
+*	none
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 BOOL MT9T113_set_param_wb(UINT16 para)
 {
 	mdelay(120);
@@ -2212,6 +2618,22 @@ BOOL MT9T113_set_param_wb(UINT16 para)
 	
 } /* MT9T113_set_param_wb */
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_set_param_effect
+*
+* DESCRIPTION
+*	effect setting.
+*
+* PARAMETERS
+*	none
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 BOOL MT9T113_set_param_effect(UINT16 para)
 {
   kal_uint32 ret = KAL_TRUE;
@@ -2334,6 +2756,22 @@ BOOL MT9T113_set_param_effect(UINT16 para)
 
 } /* MT9T113_set_param_effect */
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_set_param_banding
+*
+* DESCRIPTION
+*	banding setting.
+*
+* PARAMETERS
+*	none
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 BOOL MT9T113_set_param_banding(UINT16 para)
 {
 	kal_uint16 temp_reg = 0;
@@ -2403,6 +2841,22 @@ BOOL MT9T113_set_param_banding(UINT16 para)
 
 
 
+/*************************************************************************
+* FUNCTION
+*	MT9T113_set_param_exposure
+*
+* DESCRIPTION
+*	exposure setting.
+*
+* PARAMETERS
+*	none
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 BOOL MT9T113_set_param_exposure(UINT16 para)
 {
 	switch (para)

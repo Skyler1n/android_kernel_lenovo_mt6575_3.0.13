@@ -1,4 +1,109 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2008
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   YUSU
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author:
+ * -------
+ *   Jackie Su (MTK02380)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ * 02 19 2012 koli.lin
+ * [ALPS00237113] [Performance][Video recording]Recording preview the screen have flash
+ * [Camera] 1. Modify the AE converge speed in the video mode.
+ *                2. Modify the isp gain delay frame with sensor exposure time and gain synchronization.
+ *
+ 
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
 #include <linux/platform_device.h>
@@ -102,6 +207,22 @@ void MT9P017_write_cmos_sensor_8(kal_uint32 addr, kal_uint32 para)
 
 
 
+/*************************************************************************
+* FUNCTION
+*    read_MT9P017_gain
+*
+* DESCRIPTION
+*    This function is to set global gain to sensor.
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint16 read_MT9P017_gain(void)
 {
 	volatile signed char i;
@@ -124,6 +245,9 @@ kal_uint16 read_MT9P017_gain(void)
 	return sensor_gain;   //mtk gain unit
 }  /* read_MT9P017_gain */
 
+/*******************************************************************************
+* 
+********************************************************************************/
 void write_MT9P017_gain(kal_uint16 gain)
 {
     kal_uint16 reg_gain;
@@ -142,12 +266,31 @@ void write_MT9P017_gain(kal_uint16 gain)
 
 }
 
+/*************************************************************************
+* FUNCTION
+* set_MT9P017_gain
+*
+* DESCRIPTION
+* This function is to set global gain to sensor.
+*
+* PARAMETERS
+* gain : sensor global gain(base: 0x40)
+*
+* RETURNS
+* the actually gain set to sensor.
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint16 MT9P07_Set_gain(kal_uint16 gain)
 {
       write_MT9P017_gain(gain);
 
 }
 
+/*******************************************************************************
+* 
+********************************************************************************/
 void MT9P017_camera_para_to_sensor(void)
 {
     kal_uint32    i;
@@ -166,6 +309,22 @@ void MT9P017_camera_para_to_sensor(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*    MT9P017_sensor_to_camera_para
+*
+* DESCRIPTION
+*    // update camera_para from sensor register
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void MT9P017_sensor_to_camera_para(void)
 {
     kal_uint32    i;
@@ -180,6 +339,22 @@ void MT9P017_sensor_to_camera_para(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*    MT9P017_get_sensor_group_count
+*
+* DESCRIPTION
+*    //
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_int32  MT9P017_get_sensor_group_count(void)
 {
     return GROUP_TOTAL_NUMS;
@@ -429,6 +604,9 @@ kal_bool MT9P017_set_sensor_item_info(kal_uint16 group_idx, kal_uint16 item_idx,
 }
 
 
+/*******************************************************************************
+*
+********************************************************************************/
 static void MT9P017_Init_setting(void)
 {
     kal_uint16 status = 0;
@@ -443,11 +621,11 @@ static void MT9P017_Init_setting(void)
 	//parallel_interface
 	    do
 	    {
-			MT9P017_write_cmos_sensor(0x301A, 0x10C8);	// RESET_REGISTER
+			MT9P017_write_cmos_sensor(0x301A, 0x12C8);	// RESET_REGISTER //LK@avoid bad frame 0x10C8->0x12C8
 			mDELAY(2);	
 			status = MT9P017_read_cmos_sensor(0x301A);  //polling status change 
 			SENSORDB("MT9P017 status = %x \n",status);
-		}while(status != 0x10C8)   ;
+		}while(status != 0x12C8);//LK@avoid bad frame 0x10C8->0x12C8
 		
 		MT9P017_write_cmos_sensor(0x3064, 0x5840);	// SMIA_TEST
 		MT9P017_write_cmos_sensor(0x31AE, 0x0101);	// SERIAL_FORMAT
@@ -731,6 +909,22 @@ kal_uint16 MT9P017_PowerOn(void)
 	}
 	return sensor_id;
 }
+/*************************************************************************
+* FUNCTION
+*   MT9P017Open
+*
+* DESCRIPTION
+*   This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 UINT32 MT9P017Open(void)
 {
@@ -749,6 +943,22 @@ UINT32 MT9P017Open(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017GetSensorID
+*
+* DESCRIPTION
+*   This function get the sensor ID 
+*
+* PARAMETERS
+*   *sensorID : return the sensor ID 
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 MT9P017GetSensorID(UINT32 *sensorID) 
 {
 		*sensorID  = MT9P017_PowerOn() ;
@@ -764,6 +974,22 @@ UINT32 MT9P017GetSensorID(UINT32 *sensorID)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017_SetShutter
+*
+* DESCRIPTION
+*   This function set e-shutter of MT9P017 to change exposure time.
+*
+* PARAMETERS
+*   shutter : exposured lines
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void MT9P017_SetShutter(kal_uint16 iShutter)
 {
     //SENSORDB("MT9P017_SetShutter =%d \n ",iShutter);
@@ -772,8 +998,6 @@ void MT9P017_SetShutter(kal_uint16 iShutter)
     }
 	MT9P017_exposure_lines=iShutter;
 	MT9P017_write_cmos_sensor_8(0x0104, 0x01); 	// GROUPED_PARAMETER_HOLD
-	if(MT9P017_Auto_Flicker_mode == KAL_TRUE)
-	    MT9P017_write_cmos_sensor(0x0340, MT9P017_Frame_Length_preview +AUTO_FLICKER_NO);
 	MT9P017_write_cmos_sensor(0x0202, iShutter); /* course_integration_time */
 	MT9P017_write_cmos_sensor_8(0x0104, 0x00); 	// GROUPED_PARAMETER_HOLD
 
@@ -781,6 +1005,22 @@ void MT9P017_SetShutter(kal_uint16 iShutter)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017_read_shutter
+*
+* DESCRIPTION
+*   This function to  Get exposure time.
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   shutter : exposured lines
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT16 MT9P017_read_shutter(void)
 {
     kal_uint16 ishutter;
@@ -788,6 +1028,22 @@ UINT16 MT9P017_read_shutter(void)
 	return ishutter;
 }
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017_night_mode
+*
+* DESCRIPTION
+*   This function night mode of MT9P017.
+*
+* PARAMETERS
+*   none
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void MT9P017_NightMode(kal_bool bEnable)
 {
     // frame rate will be control by AE table 
@@ -796,25 +1052,39 @@ void MT9P017_NightMode(kal_bool bEnable)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017Close
+*
+* DESCRIPTION
+*   This function is to turn off sensor module power.
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 MT9P017Close(void)
 {
-   kal_uint16 pos = 0;
-	pos = MT9P017_read_cmos_sensor(0x30F2);
+    //LK@add to reduce af noise
+    kal_uint16 pos = 0;
+    pos = MT9P017_read_cmos_sensor(0x30f2);
+    if(pos > 0x60)
+    {
+        MT9P017_write_cmos_sensor(0x30f2, 0x0060);//af step hold
+        mDELAY(20);
+    }
 
-	if(pos > 0x60)
-	{
-		MT9P017_write_cmos_sensor(0x30F2, 0x0060);  //AF step hold
-		mDELAY(20);
-	}
-	MT9P017_write_cmos_sensor(0x30F2, 0x0040);  //AF step hold
-	
-	mDELAY(20);
-	MT9P017_write_cmos_sensor(0x30F2, 0x0010);  //AF step hold
-	
-	mDELAY(30);
-	MT9P017_write_cmos_sensor(0x30F2, 0x0004);  //AF step hold
-	
-	mDELAY(20);
+    MT9P017_write_cmos_sensor(0x30f2, 0x0040);
+    mDELAY(20);
+    MT9P017_write_cmos_sensor(0x30f2, 0x0010);
+    mDELAY(20);
+    MT9P017_write_cmos_sensor(0x30f2, 0x0004);
+    mDELAY(20);
     return ERROR_NONE;
 }	/* MT9P017Close() */
 
@@ -970,6 +1240,23 @@ static void MT9P017_capture_setting_15fps(void)
 	mDELAY(10);
 }
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017_SetDummy
+*
+* DESCRIPTION
+*   This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*   mode  ture : preview mode
+*             false : capture mode
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 static void MT9P017_SetDummy(kal_bool mode,const kal_uint16 iDummyPixels, const kal_uint16 iDummyLines)
 {
@@ -996,13 +1283,34 @@ static void MT9P017_SetDummy(kal_bool mode,const kal_uint16 iDummyPixels, const 
 }   /*  MT9P017_SetDummy */
 
 
+/*************************************************************************
+* FUNCTION
+*   MT9P017Preview
+*
+* DESCRIPTION
+*   This function start the sensor preview.
+*
+* PARAMETERS
+*   *image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 MT9P017Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
                                                 MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
     SENSORDB("Enter MT9P017Preview \n ");
     MT9P017_PV_dummy_pixels = 0;
-	MT9P017_PV_dummy_lines  = 0;  
+	MT9P017_PV_dummy_lines  = 0;
+#if defined(SIMCOM_I5000) //amy0509 
+	sensor_config_data->SensorImageMirror = IMAGE_HV_MIRROR;
+#else
 	sensor_config_data->SensorImageMirror = IMAGE_NORMAL;
+#endif
 	 if(sensor_config_data->SensorOperationMode==MSDK_SENSOR_OPERATION_MODE_VIDEO)		// MPEG4 Encode Mode
     {
         MT9P017_MPEG4_encode_mode = KAL_TRUE;
@@ -1032,11 +1340,13 @@ UINT32 MT9P017Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 
 
 
+/*******************************************************************************
+*
+********************************************************************************/
 UINT32 MT9P017Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
                                                 MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
     kal_uint32 shutter=MT9P017_exposure_lines;
-
 	MT9P017_Auto_Flicker_mode = KAL_FALSE;
 	MT9P017_MPEG4_encode_mode = KAL_FALSE;
 
@@ -1064,7 +1374,6 @@ UINT32 MT9P017Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 		 return;
 		}
 		g_iMT9P017_Mode = MT9P017_MODE_CAPTURE;
-		
 		MT9P017_dummy_pixels = 0;
 		MT9P017_dummy_lines  = 0;
 		
@@ -1136,7 +1445,11 @@ UINT32 MT9P017GetInfo(MSDK_SCENARIO_ID_ENUM ScenarioId,
     pSensorInfo->SensorWebCamCaptureFrameRate=15;
     pSensorInfo->SensorResetActiveHigh=FALSE;
     pSensorInfo->SensorResetDelayCount=5;
+#if defined(SIMCOM_I5000)
+    pSensorInfo->SensorOutputDataFormat     = SENSOR_OUTPUT_FORMAT_RAW_R;
+#else
     pSensorInfo->SensorOutputDataFormat     = SENSOR_OUTPUT_FORMAT_RAW_B;
+#endif
     pSensorInfo->SensorClockPolarity        = SENSOR_CLOCK_POLARITY_LOW; /*??? */
     pSensorInfo->SensorClockFallingPolarity = SENSOR_CLOCK_POLARITY_LOW;
     pSensorInfo->SensorHsyncPolarity        = SENSOR_CLOCK_POLARITY_LOW;
@@ -1175,8 +1488,8 @@ UINT32 MT9P017GetInfo(MSDK_SCENARIO_ID_ENUM ScenarioId,
     pSensorInfo->VideoDelayFrame = 5; 
     pSensorInfo->SensorMasterClockSwitch = 0; 
     pSensorInfo->SensorDrivingCurrent = ISP_DRIVING_6MA;      
-    pSensorInfo->AEShutDelayFrame = 0;		    /* The frame of setting shutter default 0 for TG int */
-    pSensorInfo->AESensorGainDelayFrame = 1;     /* The frame of setting sensor gain */
+    pSensorInfo->AEShutDelayFrame = 1;//0;		    /* The frame of setting shutter default 0 for TG int */
+    pSensorInfo->AESensorGainDelayFrame = 0;//1;     /* The frame of setting sensor gain */
     pSensorInfo->AEISPGainDelayFrame = 2;	
 	   
     switch (ScenarioId)
@@ -1261,7 +1574,7 @@ UINT32 MT9P017SetVideoMode(UINT16 u2FrameRate)
 	//if(MT9P017_PV_dummy_lines <(MAX_Frame_length - MT9P017_PV_PERIOD_LINE_NUMS))  //original dummy length < current needed dummy length 
 	if(MAX_Frame_length < MT9P017_PV_PERIOD_LINE_NUMS )
 		MAX_Frame_length = MT9P017_PV_PERIOD_LINE_NUMS;
-	    MT9P017_PV_dummy_lines = MAX_Frame_length - MT9P017_PV_PERIOD_LINE_NUMS ;  
+    MT9P017_PV_dummy_lines = MAX_Frame_length - MT9P017_PV_PERIOD_LINE_NUMS  ;
 	
 	MT9P017_SetDummy(KAL_TRUE,MT9P017_PV_dummy_pixels,MT9P017_PV_dummy_lines);
 	
@@ -1276,12 +1589,12 @@ UINT32 MT9P017SetAutoFlickerMode(kal_bool bEnable, UINT16 u2FrameRate)
     if(bEnable) 
 	{   // enable auto flicker   
         MT9P017_Auto_Flicker_mode = KAL_TRUE; 
-        if(MT9P017_MPEG4_encode_mode == KAL_TRUE) 
+        //if(MT9P017_MPEG4_encode_mode == KAL_TRUE) 
 		{   
 			// in the video mode, reset the frame rate
-			MT9P017_write_cmos_sensor(0x0104, 1);        
+			MT9P017_write_cmos_sensor_8(0x0104, 1);//LK@sync with zhijie        
 			MT9P017_write_cmos_sensor(0x0340, MT9P017_Frame_Length_preview +AUTO_FLICKER_NO);
-            MT9P017_write_cmos_sensor(0x0104, 0);        	
+            MT9P017_write_cmos_sensor_8(0x0104, 0);//LK@sync with zhijie          	
         }
     } else 
     {
@@ -1289,9 +1602,9 @@ UINT32 MT9P017SetAutoFlickerMode(kal_bool bEnable, UINT16 u2FrameRate)
         if(MT9P017_MPEG4_encode_mode == KAL_TRUE) 
 		{
 			// in the video mode, restore the frame rate
-			MT9P017_write_cmos_sensor(0x0104, 1);        
+			MT9P017_write_cmos_sensor_8(0x0104, 1); //LK@sync with zhijie         
 			MT9P017_write_cmos_sensor(0x0340, MT9P017_Frame_Length_preview);
-            MT9P017_write_cmos_sensor(0x0104, 0);         	
+            MT9P017_write_cmos_sensor_8(0x0104, 0);//LK@sync with zhijie           	
         }
         printk("Disable Auto flicker\n");    
     }
@@ -1455,7 +1768,11 @@ UINT32 MT9P017FeatureControl(MSDK_SENSOR_FEATURE_ENUM FeatureId,
         case SENSOR_FEATURE_GET_ENG_INFO:
             pSensorEngInfo->SensorId = 221;
             pSensorEngInfo->SensorType = CMOS_SENSOR;
+#if defined(SIMCOM_I5000)
+            pSensorEngInfo->SensorOutputDataFormat     = SENSOR_OUTPUT_FORMAT_RAW_R;
+#else
             pSensorEngInfo->SensorOutputDataFormat=SENSOR_OUTPUT_FORMAT_RAW_B;
+#endif
             *pFeatureParaLen=sizeof(MSDK_SENSOR_ENG_INFO_STRUCT);
             break;
         case SENSOR_FEATURE_GET_LENS_DRIVER_ID:

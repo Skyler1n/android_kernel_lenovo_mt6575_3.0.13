@@ -1,3 +1,37 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
@@ -19,7 +53,11 @@
 #include "kd_sensorlist.h"
 
 #define USE_NEW_IOCTL
+static struct timeval tWorkQueue; 
 
+/*******************************************************************************
+* general camera image sensor kernel driver
+*******************************************************************************/
 UINT32 kdGetSensorInitFuncList(ACDK_KD_SENSOR_INIT_FUNCTION_STRUCT **ppSensorList)
 {
     if (NULL == ppSensorList)
@@ -34,12 +72,18 @@ UINT32 kdGetSensorInitFuncList(ACDK_KD_SENSOR_INIT_FUNCTION_STRUCT **ppSensorLis
 //i2c id for sensor device
 // @Sean, move to kd_camera_hw.h
 //#define IMG_SENSOR_I2C_GROUP_ID 0
+/*******************************************************************************
+*
+********************************************************************************/
 #define CAMERA_HW_DRVNAME "kd_camera_hw"
 
 /* SENSOR READ/WRITE ID */
 #define CAMERA_HW_WRITE_ID    0xfe
 #define CAMERA_HW_READ_ID     0xfd
 
+/******************************************************************************
+ * Debug configuration
+******************************************************************************/
 #define PFX "[kd_sensorlist]"
 #define PK_DBG_NONE(fmt, arg...)    do {} while (0)
 #define PK_DBG_FUNC(fmt, arg...)    printk(KERN_INFO PFX "%s: " fmt, __FUNCTION__ ,##arg)
@@ -53,14 +97,23 @@ UINT32 kdGetSensorInitFuncList(ACDK_KD_SENSOR_INIT_FUNCTION_STRUCT **ppSensorLis
 #define PK_ERR(a,...)
 #endif
 
+/*******************************************************************************
+* Proifling 
+********************************************************************************/
 #define PROFILE 1 
 #if PROFILE 
 static struct timeval tv1, tv2; 
+/*******************************************************************************
+*
+********************************************************************************/
 inline void KD_IMGSENSOR_PROFILE_INIT(void)
 {
     do_gettimeofday(&tv1);    
 }
 
+/*******************************************************************************
+*
+********************************************************************************/
 inline void KD_IMGSENSOR_PROFILE(char *tag)
 {
     unsigned long TimeIntervalUS;    
@@ -76,6 +129,9 @@ inline static void KD_IMGSENSOR_PROFILE(char *tag) {}
 #endif 
 
 
+/*******************************************************************************
+*
+********************************************************************************/
 //static unsigned short g_pu2Normal_i2c[] = {CAMERA_HW_WRITE_ID , I2C_CLIENT_END};
 //static unsigned short g_u2Ignore = I2C_CLIENT_END;
 static struct i2c_client * g_pstI2Cclient = NULL;
@@ -96,10 +152,23 @@ static BOOL bSesnorVsyncFlag = FALSE;
 static CAMERA_DUAL_CAMERA_SENSOR_ENUM g_currDualSensorIdx = DUAL_CAMERA_NONE_SENSOR;
 static char g_currSensorName[32] = KDIMGSENSOR_NOSENSOR;
 static ACDK_KD_SENSOR_SYNC_STRUCT g_NewSensorExpGain = {128, 128, 128, 128, 1000, 640, 0xFF, 0xFF, 0xFF, 0};
+/*=============================================================================
+
+=============================================================================*/
+/*******************************************************************************
+* i2c relative start
+* migrate new style i2c driver interfaces required by Kirby 20100827
+********************************************************************************/
 static const struct i2c_device_id CAMERA_HW_i2c_id[] = {{CAMERA_HW_DRVNAME,0},{}};   
 //static unsigned short force[] = {IMG_SENSOR_I2C_GROUP_ID, CAMERA_HW_WRITE_ID, I2C_CLIENT_END, I2C_CLIENT_END};   
 //static const unsigned short * const forces[] = { force, NULL };              
 //static struct i2c_client_address_data addr_data = { .forces = forces,}; 
+/*******************************************************************************
+*
+********************************************************************************/
+/*******************************************************************************
+* iReadReg                                                                                    
+********************************************************************************/
 int iReadReg(u16 a_u2Addr , u8 * a_puBuff , u16 i2cId)
 {
     int  i4RetValue = 0;
@@ -123,6 +192,9 @@ int iReadReg(u16 a_u2Addr , u8 * a_puBuff , u16 i2cId)
     return 0;
 }
 
+/*******************************************************************************
+* iReadRegI2C                                                                                    
+********************************************************************************/
 int iReadRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u8 * a_pRecvData, u16 a_sizeRecvData, u16 i2cId)
 {
     int  i4RetValue = 0;
@@ -144,6 +216,9 @@ int iReadRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u8 * a_pRecvData, u16 a_si
 }
 
 
+/*******************************************************************************
+* iWriteReg
+********************************************************************************/
 int iWriteReg(u16 a_u2Addr , u32 a_u4Data , u32 a_u4Bytes , u16 i2cId)
 {
     int  i4RetValue = 0;
@@ -190,6 +265,9 @@ int iWriteReg(u16 a_u2Addr , u32 a_u4Data , u32 a_u4Bytes , u16 i2cId)
 }
 
 
+/*******************************************************************************
+* iBurstWriteReg
+********************************************************************************/
 #define MAX_CMD_LEN          255
 int iBurstWriteReg(u8 *pData, u32 bytes, u16 i2cId) 
 {
@@ -243,6 +321,9 @@ int iBurstWriteReg(u8 *pData, u32 bytes, u16 i2cId)
 }
 
 
+/*******************************************************************************
+* iMultiWriteReg
+********************************************************************************/
 
 #if defined(MT6575)
 int iMultiWriteReg(u8 *pData, u16 lens)
@@ -305,6 +386,9 @@ int iMultiWriteReg(u8 *pData, u16 lens)
 
 #endif
 
+/*******************************************************************************
+* iWriteRegI2C
+********************************************************************************/
 int iWriteRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u16 i2cId)
 {
     int  i4RetValue = 0;
@@ -329,15 +413,24 @@ int iWriteRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u16 i2cId)
     return 0;
 }
 
+/*******************************************************************************
+*
+********************************************************************************/
 extern int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSensorName,BOOL On, char* mode_name);
 extern ssize_t strobe_VDIrq(void);  //cotta : add for high current solution
 
 
+/*******************************************************************************
+* kdModulePowerOn
+********************************************************************************/
 int kdModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSensorName, BOOL On, char* mode_name)
 {
     return kdCISModulePowerOn(SensorIdx,currSensorName,On,mode_name);
 }
 
+/*******************************************************************************
+* kdSetDriver
+********************************************************************************/
 int kdSetDriver(unsigned int* pDrvIndex)
 {
     ACDK_KD_SENSOR_INIT_FUNCTION_STRUCT *pSensorList = NULL;
@@ -376,6 +469,9 @@ int kdSetDriver(unsigned int* pDrvIndex)
 	return 0;
 }
 
+/*******************************************************************************
+* kdSetSensorSyncFlag
+********************************************************************************/
 int kdSetSensorSyncFlag(BOOL bSensorSync)
 {
     bSesnorVsyncFlag = bSensorSync;		
@@ -386,6 +482,9 @@ int kdSetSensorSyncFlag(BOOL bSensorSync)
     return 0;
 }
 
+/*******************************************************************************
+* kdCheckSensorPowerOn
+********************************************************************************/
 int kdCheckSensorPowerOn(void)
 {
     if (atomic_read(&g_CamHWOpening)==0){//sensor power off
@@ -396,6 +495,9 @@ int kdCheckSensorPowerOn(void)
     }
 }
 
+/*******************************************************************************
+* kdSensorSyncFunctionPtr
+********************************************************************************/
 //static u16 g_SensorAFPos = 0; 
 //static atomic_t g_SetSensorAF; 
 int kdSensorSyncFunctionPtr(void)
@@ -433,10 +535,15 @@ int kdSensorSyncFunctionPtr(void)
     if((g_NewSensorExpGain.uISPGainDelayFrame != 0xFF) && (g_NewSensorExpGain.uISPGainDelayFrame != 0)){
         g_NewSensorExpGain.uISPGainDelayFrame --;  
     }	
+    
+    do_gettimeofday(&tWorkQueue);   // keep the time for last sensor setting
     mutex_unlock(&kdCam_Mutex);           
     return 0;
 }
 
+/*******************************************************************************
+* kdGetRawGainInfo
+********************************************************************************/
 int kdGetRawGainInfoPtr(UINT16 *pRAWGain)
 {
     *pRAWGain = 0x00; 
@@ -456,10 +563,16 @@ int kdGetRawGainInfoPtr(UINT16 *pRAWGain)
 
     return 0;
 }
+/*******************************************************************************
+*
+********************************************************************************/
 //
 //winmo public control interface
 //
 
+/*******************************************************************************
+* adopt_CAMERA_HW_Open
+********************************************************************************/
 inline static int adopt_CAMERA_HW_Open(void)
 {
     UINT32 err = 0;
@@ -493,6 +606,9 @@ inline static int adopt_CAMERA_HW_Open(void)
     return err?-EIO:err;
 }	/* adopt_CAMERA_HW_Open() */
 
+/*******************************************************************************
+* adopt_CAMERA_HW_CheckIsAlive
+********************************************************************************/
 inline static int adopt_CAMERA_HW_CheckIsAlive(void)
 {
     UINT32 err = 0;
@@ -538,6 +654,9 @@ inline static int adopt_CAMERA_HW_CheckIsAlive(void)
 }	/* adopt_CAMERA_HW_Open() */
 
 
+/*******************************************************************************
+* adopt_CAMERA_HW_GetResolution
+********************************************************************************/
 inline static int adopt_CAMERA_HW_GetResolution(void *pBuf)
 {
     if (g_pSensorFunc) {
@@ -550,6 +669,9 @@ inline static int adopt_CAMERA_HW_GetResolution(void *pBuf)
 }	/* adopt_CAMERA_HW_GetResolution() */
 
 
+/*******************************************************************************
+* adopt_CAMERA_HW_GetInfo
+********************************************************************************/
 inline static int adopt_CAMERA_HW_GetInfo(void *pBuf)
 {
     ACDK_SENSOR_GETINFO_STRUCT *pSensorGetInfo = (ACDK_SENSOR_GETINFO_STRUCT*)pBuf;
@@ -589,6 +711,9 @@ inline static int adopt_CAMERA_HW_GetInfo(void *pBuf)
     return 0;
 }	/* adopt_CAMERA_HW_GetInfo() */
 
+/*******************************************************************************
+* adopt_CAMERA_HW_Control
+********************************************************************************/
 inline static int adopt_CAMERA_HW_Control(void *pBuf)
 {
     int ret = 0; 
@@ -640,11 +765,16 @@ inline static int adopt_CAMERA_HW_Control(void *pBuf)
     return ret;
 }//adopt_CAMERA_HW_Control
 
+/*******************************************************************************
+* adopt_CAMERA_HW_FeatureControl
+********************************************************************************/
 inline static int  adopt_CAMERA_HW_FeatureControl(void *pBuf)
 {
     ACDK_SENSOR_FEATURECONTROL_STRUCT *pFeatureCtrl = (ACDK_SENSOR_FEATURECONTROL_STRUCT*)pBuf;
     unsigned int FeatureParaLen = 0;
     void *pFeaturePara = NULL;
+    unsigned long TimeSyncUS;    
+    struct timeval tSent2Kernel; 
     
     ACDK_SENSOR_GROUP_INFO_STRUCT *pSensorGroupInfo = NULL;
     ACDK_KD_SENSOR_SYNC_STRUCT *pSensorSyncInfo = NULL;
@@ -730,6 +860,35 @@ inline static int  adopt_CAMERA_HW_FeatureControl(void *pBuf)
             g_NewSensorExpGain.uSensorExpDelayFrame = pSensorSyncInfo->uSensorExpDelayFrame;
 	    g_NewSensorExpGain.uSensorGainDelayFrame = pSensorSyncInfo->uSensorGainDelayFrame;
 	    g_NewSensorExpGain.uISPGainDelayFrame = pSensorSyncInfo->uISPGainDelayFrame;
+
+           // if the work queue end in the 5ms, send to sensor for 1st frame
+	    do_gettimeofday(&tSent2Kernel);
+           TimeSyncUS = (tSent2Kernel.tv_sec - tWorkQueue.tv_sec) * 1000000 + (tSent2Kernel.tv_usec - tWorkQueue.tv_usec); 
+           if(TimeSyncUS < 10000) {   // 10 ms
+               PK_DBG("Send to sensor for 1st frame:%d\n", TimeSyncUS);      
+//              kdSensorSyncFunctionPtr();
+               if (g_NewSensorExpGain.uSensorExpDelayFrame == 0) {
+                   FeatureParaLen = 2;
+                   g_pSensorFunc->SensorFeatureControl(SENSOR_FEATURE_SET_ESHUTTER, (unsigned char*)&g_NewSensorExpGain.u2SensorNewExpTime, (unsigned int*) &FeatureParaLen);        
+                   g_NewSensorExpGain.uSensorExpDelayFrame = 0xFF; // disable                         
+               } else if(g_NewSensorExpGain.uSensorExpDelayFrame != 0xFF) {
+                   g_NewSensorExpGain.uSensorExpDelayFrame --;  
+               }
+   
+               // exposure gain 
+               if (g_NewSensorExpGain.uSensorGainDelayFrame == 0) {
+                   FeatureParaLen = 2;
+                   g_pSensorFunc->SensorFeatureControl(SENSOR_FEATURE_SET_GAIN, (unsigned char*)&g_NewSensorExpGain.u2SensorNewGain, (unsigned int*) &FeatureParaLen);
+                   g_NewSensorExpGain.uSensorGainDelayFrame = 0xFF; // disable 
+               } else if(g_NewSensorExpGain.uSensorGainDelayFrame != 0xFF) {
+                   g_NewSensorExpGain.uSensorGainDelayFrame --;  
+               } 
+    
+               // if the delay frame is 0 or 0xFF, stop to count
+               if((g_NewSensorExpGain.uISPGainDelayFrame != 0xFF) && (g_NewSensorExpGain.uISPGainDelayFrame != 0)){
+                   g_NewSensorExpGain.uISPGainDelayFrame --;  
+               }	
+           }
 	     
 //          PK_DBG("[pFeaturePara] NewExp:%d NewSensorGain:%d NewISPGain:%d %d %d %d ExpDelay:%d SensorGainDelay:%d ISPGainDelay:%d\n", 
 //	    	g_NewSensorExpGain.u2SensorNewExpTime,	g_NewSensorExpGain.u2SensorNewGain, g_NewSensorExpGain.u2ISPNewRGain, 
@@ -863,6 +1022,9 @@ inline static int  adopt_CAMERA_HW_FeatureControl(void *pBuf)
 }	/* adopt_CAMERA_HW_FeatureControl() */
 
 
+/*******************************************************************************
+* adopt_CAMERA_HW_Close
+********************************************************************************/
 inline static int adopt_CAMERA_HW_Close(void)
 {
     if (atomic_read(&g_CamHWOpend) == 0) {
@@ -889,6 +1051,9 @@ inline static int adopt_CAMERA_HW_Close(void)
     return 0;
 }	/* adopt_CAMERA_HW_Close() */
 
+/*******************************************************************************
+* CAMERA_HW_Ioctl
+********************************************************************************/
 #ifdef USE_NEW_IOCTL
 static long CAMERA_HW_Ioctl(
     struct file * a_pstFile,
@@ -994,11 +1159,24 @@ CAMERA_HW_Ioctl_EXIT:
     return i4RetValue;
 }
 
+/*******************************************************************************
+*
+********************************************************************************/
 //
 //below is for linux driver system call
 //change prefix or suffix only
 //
 
+/*******************************************************************************
+ * RegisterCAMERA_HWCharDrv
+ * #define
+ * Main jobs:
+ * 1.check for device-specified errors, device not ready.
+ * 2.Initialize the device if it is opened for the first time.
+ * 3.Update f_op pointer.
+ * 4.Fill data structures into private_data
+ * CAM_RESET
+********************************************************************************/
 static int CAMERA_HW_Open(struct inode * a_pstInode, struct file * a_pstFile)
 {
     //
@@ -1006,6 +1184,14 @@ static int CAMERA_HW_Open(struct inode * a_pstInode, struct file * a_pstFile)
     return 0;
 }
 
+/*******************************************************************************
+  * RegisterCAMERA_HWCharDrv
+  * Main jobs:
+  * 1.Deallocate anything that "open" allocated in private_data.
+  * 2.Shut down the device on last close.
+  * 3.Only called once on last time.
+  * Q1 : Try release multiple times.
+********************************************************************************/
 static int CAMERA_HW_Release(struct inode * a_pstInode, struct file * a_pstFile)
 {
     atomic_dec(&g_CamDrvOpenCnt); 
@@ -1026,6 +1212,9 @@ static const struct file_operations g_stCAMERA_HW_fops =
 };
 
 #define CAMERA_HW_DYNAMIC_ALLOCATE_DEVNO 1
+/*******************************************************************************
+* RegisterCAMERA_HWCharDrv
+********************************************************************************/
 inline static int RegisterCAMERA_HWCharDrv(void)
 {
     struct device* sensor_device = NULL;
@@ -1084,6 +1273,9 @@ inline static int RegisterCAMERA_HWCharDrv(void)
     return 0;
 }
 
+/*******************************************************************************
+* UnregisterCAMERA_HWCharDrv
+********************************************************************************/
 inline static void UnregisterCAMERA_HWCharDrv(void)
 {
     //Release char driver
@@ -1095,6 +1287,13 @@ inline static void UnregisterCAMERA_HWCharDrv(void)
     class_destroy(sensor_class);
 }
 
+/*******************************************************************************
+ * i2c relative start
+ *=============================================================================
+ *=============================================================================
+ * CAMERA_HW_i2c_detect
+ * migrate new style i2c driver interfaces required by Kirby 20100827
+********************************************************************************/
 #if 0
 static int CAMERA_HW_i2c_detect(struct i2c_client *client, int kind, struct i2c_board_info *info) 
 {         
@@ -1102,6 +1301,9 @@ static int CAMERA_HW_i2c_detect(struct i2c_client *client, int kind, struct i2c_
     return 0;
 }
 #endif
+/*******************************************************************************
+* CAMERA_HW_i2c_probe
+********************************************************************************/
 static int CAMERA_HW_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id) 
 {             
     int i4RetValue = 0;
@@ -1127,24 +1329,39 @@ static int CAMERA_HW_i2c_probe(struct i2c_client *client, const struct i2c_devic
 } 
 
 
+/*******************************************************************************
+* CAMERA_HW_i2c_remove
+********************************************************************************/
 static int CAMERA_HW_i2c_remove(struct i2c_client *client)
 {
     return 0;
 }
 
+/*******************************************************************************
+* I2C Driver structure 
+********************************************************************************/
 struct i2c_driver CAMERA_HW_i2c_driver = {                       
     .probe = CAMERA_HW_i2c_probe,                                   
     .remove = CAMERA_HW_i2c_remove,                           
     .driver.name = CAMERA_HW_DRVNAME,
     .id_table = CAMERA_HW_i2c_id,                             
 };
+/*******************************************************************************
+* i2c relative end
+********************************************************************************/
 
+/*******************************************************************************
+* CAMERA_HW_remove
+********************************************************************************/
 static int CAMERA_HW_probe(struct platform_device *pdev)
 {
     return i2c_add_driver(&CAMERA_HW_i2c_driver);
 }
 
 
+/*******************************************************************************
+* CAMERA_HW_remove() 
+********************************************************************************/
 static int CAMERA_HW_remove(struct platform_device *pdev)
 {
     i2c_del_driver(&CAMERA_HW_i2c_driver);
@@ -1152,22 +1369,71 @@ static int CAMERA_HW_remove(struct platform_device *pdev)
 }
 
 
+/*******************************************************************************
+*CAMERA_HW_suspend() 
+********************************************************************************/
 static int CAMERA_HW_suspend(struct platform_device *pdev, pm_message_t mesg)
 {
+/*
+    if(TRUE != hwPowerDown(MT6516_POWER_VCAM_A,"CAMERA_HW"))
+    {
+        PK_DBG("[CAMERA SENSOR] failed to suspend - VCAM_A \n");
+        return -EIO;
+    }
+
+    if(TRUE != hwPowerDown(MT6516_POWER_VCAM_D,"CAMERA_HW"))
+    {
+        PK_DBG("[CAMERA SENSOR] Fail to suspend - VCAM_D\n");
+        return -EIO;
+    }
+*/
     return 0;
 }
 
+/*******************************************************************************
+  * CAMERA_HW_DumpReg_To_Proc() 
+  * Used to dump some critical sensor register 
+  ********************************************************************************/
 static int CAMERA_HW_resume(struct platform_device *pdev)
 {
+/*
+    if(InitHW())
+    {
+        PK_DBG("[CAMERA SENSOR] failed to resume - init HW failed \n");
+        return -EIO;
+    }
+*/
     return 0;
 }
 
+/*******************************************************************************
+  * CAMERA_HW_DumpReg_To_Proc() 
+  * Used to dump some critical sensor register 
+  ********************************************************************************/
 static int  CAMERA_HW_DumpReg_To_Proc(char *page, char **start, off_t off,
                                                                                        int count, int *eof, void *data)
 {
+#if 0
     return count;
+#else
+	/*punk temperaly*/
+    char *ptr = page;
+	char *name;
+
+	PK_DBG("%s ,cam name=%s\n", __func__,g_currSensorName);
+	printk("%s ,cam name=%s\n", __func__,g_currSensorName);
+	ptr += sprintf( ptr, "Camera sensor name : %s\n",g_currSensorName);
+
+
+	*eof = 1;
+	return ( ptr - page );
+#endif
 }
 
+/*******************************************************************************
+  * CAMERA_HW_Reg_Debug() 
+  * Used for sensor register read/write by proc file 
+  ********************************************************************************/
 static int  CAMERA_HW_Reg_Debug( struct file *file, const char *buffer, unsigned long count,
                                                                      void *data)
 {
@@ -1199,6 +1465,9 @@ static int  CAMERA_HW_Reg_Debug( struct file *file, const char *buffer, unsigned
 
 
 
+/*=======================================================================
+  * platform driver 
+  *=======================================================================*/
 static struct platform_driver g_stCAMERA_HW_Driver = {
     .probe		= CAMERA_HW_probe,
     .remove	    = CAMERA_HW_remove,
@@ -1210,6 +1479,9 @@ static struct platform_driver g_stCAMERA_HW_Driver = {
     }
 };
 
+/*=======================================================================
+  * CAMERA_HW_i2C_init() 
+  *=======================================================================*/
 static int __init CAMERA_HW_i2C_init(void)
 {
     struct proc_dir_entry *prEntry;
@@ -1235,6 +1507,9 @@ static int __init CAMERA_HW_i2C_init(void)
 }
 
 
+/*=======================================================================
+  * CAMERA_HW_i2C_exit() 
+  *=======================================================================*/
 static void __exit CAMERA_HW_i2C_exit(void)
 {
     platform_driver_unregister(&g_stCAMERA_HW_Driver);

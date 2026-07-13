@@ -1,4 +1,100 @@
 
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ */
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2008
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   DUMA
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author:
+ * -------
+ *   PC Huang (MTK02204)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 //#include <windows.h>
 //#include <memory.h>
 //#include <nkintr.h>
@@ -82,6 +178,9 @@ inline int S5K5CAGX_write_cmos_sensor(u16 addr, u32 para)
 //s_porting add
 
 
+/*******************************************************************************
+* // Adapter for Winmo typedef 
+********************************************************************************/
 #define WINMO_USE 0
 
 #define Sleep(ms) mdelay(ms)
@@ -89,6 +188,9 @@ inline int S5K5CAGX_write_cmos_sensor(u16 addr, u32 para)
 #define TEXT
 
 
+/*******************************************************************************
+* // End Adapter for Winmo typedef 
+********************************************************************************/
 
 //e_porting add
 //e_porting add
@@ -195,6 +297,23 @@ MSDK_SENSOR_CONFIG_STRUCT S5K5CAGXSensorConfigData;
 //   return iGetByte;
 //}   /*  S5K5CAGX_read_cmos_sensor()  */
 
+/*************************************************************************
+* FUNCTION
+*	 S5K5CAGX_write_reg
+*
+* DESCRIPTION
+*	This function set the register of  S5K5CAGX.
+*
+* PARAMETERS
+*	addr : the register index of  S5K5CAGX
+*  para : setting parameter of the specified register of  S5K5CAGX
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void  S5K5CAGX_write_reg(kal_uint32 addr, kal_uint32 para)
 {
 
@@ -203,6 +322,22 @@ void  S5K5CAGX_write_reg(kal_uint32 addr, kal_uint32 para)
 
 }	/*  S5K5CAGX_write_reg() */
 
+/*************************************************************************
+* FUNCTION
+*	 S5K5CAGX_read_cmos_sensor
+*
+* DESCRIPTION
+*	This function read parameter of specified register from  S5K5CAGX.
+*
+* PARAMETERS
+*	addr : the register index of  S5K5CAGX
+*
+* RETURNS
+*	the data that read from  S5K5CAGX
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint32  S5K5CAGX_read_reg(kal_uint32 addr)
 {
 
@@ -211,6 +346,16 @@ kal_uint32  S5K5CAGX_read_reg(kal_uint32 addr)
 
 }	/*  S5K5CAGX_read_reg() */
 
+/*****************************************************************************
+ * FUNCTION
+ *  S5K5CAGX_select_page
+ * DESCRIPTION
+ *
+ * PARAMETERS
+ *  shutter     [IN]
+ * RETURNS
+ *  void
+ *****************************************************************************/
 void S5K5CAGX_select_page(kal_uint16 page)
 {
 	S5K5CAGX_write_cmos_sensor(0xFC, page);
@@ -258,6 +403,17 @@ void S5K5CAGX_set_isp_driving_current(kal_uint8 current)
 {
 }
 
+/*****************************************************************************
+ * FUNCTION
+ *  S5K5CAGX_set_dummy
+ * DESCRIPTION
+ *
+ * PARAMETERS
+ *  pixels      [IN]
+ *  lines       [IN]
+ * RETURNS
+ *  void
+ *****************************************************************************/
 void S5K5CAGX_set_dummy(kal_uint16 dummy_pixels, kal_uint16 dummy_lines)
 {
 		/****************************************************
@@ -272,6 +428,16 @@ void S5K5CAGX_set_dummy(kal_uint16 dummy_pixels, kal_uint16 dummy_lines)
 		S5K5CAGX_write_cmos_sensor(0x0F12, dummy_lines); 	// Extra V-Blanking
 }   /* S5K5CAGX_set_dummy */
 
+/*****************************************************************************
+ * FUNCTION
+ *  S5K5CAGX_Initialize_Setting
+ * DESCRIPTION
+ *
+ * PARAMETERS
+ *  void
+ * RETURNS
+ *  void
+ *****************************************************************************/
 void S5K5CAGX_Initialize_Setting(void)
 	{
 
@@ -3498,6 +3664,16 @@ void S5K5CAGX_Initialize_Setting(void)
 }
 
 
+/*****************************************************************************
+ * FUNCTION
+ *  S5K5CAGX_PV_Mode
+ * DESCRIPTION
+ *
+ * PARAMETERS
+ *  void
+ * RETURNS
+ *  void
+ *****************************************************************************/
 void S5K5CAGX_PV_Mode(void)
 	{
 		//================================================================
@@ -3524,6 +3700,16 @@ void S5K5CAGX_PV_Mode(void)
 
 
 
+/*****************************************************************************
+ * FUNCTION
+ *  S5K5CAGX_CAP_Mode
+ * DESCRIPTION
+ *
+ * PARAMETERS
+ *  void
+ * RETURNS
+ *  void
+ *****************************************************************************/
 void S5K5CAGX_CAP_Mode2(void)
 	{
 			S5K5CAGX_write_cmos_sensor(0x0028, 0x7000); 
@@ -3561,6 +3747,23 @@ void S5K5CAGX_CAP_Mode(void)
 	}
 
 
+/*void S5K5CAGX_AE_AWB_Enable(kal_bool enable)
+{
+	S5K5CAGX_write_cmos_sensor(0x0028, 0x7000);	
+	S5K5CAGX_write_cmos_sensor(0x002A, 0x04D2);		// REG_TC_DBG_AutoAlgEnBits
+		
+	if (enable)
+	{
+		// Enable AE/AWB
+		S5K5CAGX_write_cmos_sensor(0x0F12, 0x077F);		// Enable aa_all, ae, awb.
+	}
+	else
+	{
+		// Disable AE/AWB
+		S5K5CAGX_write_cmos_sensor(0x0F12, 0x0770);		// Disable aa_all, ae, awb.
+	}
+
+}*/
 static void S5K5CAGX_set_AE_mode(kal_bool AE_enable)
 {
 #if 0
@@ -3609,6 +3812,22 @@ static void S5K5CAGX_set_AWB_mode(kal_bool AWB_enable)
 
 
 
+/*************************************************************************
+* FUNCTION
+*	S5K5CAGX_night_mode
+*
+* DESCRIPTION
+*	This function night mode of S5K5CAGX.
+*
+* PARAMETERS
+*	none
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void S5K5CAGX_night_mode(kal_bool enable)
 {
 	/*----------------------------------------------------------------*/
@@ -3690,6 +3909,23 @@ void S5K5CAGX_night_mode(kal_bool enable)
 
 }	/* S5K5CAGX_night_mode */
 
+/*************************************************************************
+* FUNCTION
+*	S5K5CAGX_GetSensorID
+*
+* DESCRIPTION
+*	This function get the sensor ID
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
+int s5k5cagetid = 0;
 static kal_uint32 S5K5CAGX_GetSensorID(kal_uint32 *sensorID)
 {
     volatile signed char i;
@@ -3707,6 +3943,7 @@ static kal_uint32 S5K5CAGX_GetSensorID(kal_uint32 *sensorID)
 	    SENSORDB("Sensor Read ByeBye \r\n");
 		return ERROR_SENSOR_CONNECT_FAIL;
 	}
+	s5k5cagetid=1;
     return ERROR_NONE;    
 }   /* S5K5CAGXOpen  */
 
@@ -3714,6 +3951,22 @@ static kal_uint32 S5K5CAGX_GetSensorID(kal_uint32 *sensorID)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*	S5K5CAGXOpen
+*
+* DESCRIPTION
+*	This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 S5K5CAGXOpen(void)
 {
 	volatile signed char i;
@@ -3732,9 +3985,26 @@ UINT32 S5K5CAGXOpen(void)
 			
 	// 10. Initial sequence setting apply to cmos sensor.
 		S5K5CAGX_Initialize_Setting();
+	s5k5cagetid=1;
 	return ERROR_NONE;
 }	/* S5K5CAGXOpen() */
 
+/*************************************************************************
+* FUNCTION
+*	S5K5CAGXClose
+*
+* DESCRIPTION
+*	This function is to turn off sensor module power.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 S5K5CAGXClose(void)
 {
 //	CISModulePowerOn(FALSE);
@@ -3743,6 +4013,23 @@ UINT32 S5K5CAGXClose(void)
 	return ERROR_NONE;
 }	/* S5K5CAGXClose() */
 
+/*************************************************************************
+* FUNCTION
+*	S5K5CAGXPreview
+*
+* DESCRIPTION
+*	This function start the sensor preview.
+*
+* PARAMETERS
+*	*image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 S5K5CAGXPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
@@ -3761,6 +4048,9 @@ UINT32 S5K5CAGXPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 		
 	}
 	S5K5CAGX_PV_Mode();
+#if defined(I5000_P150)
+	sensor_config_data->SensorImageMirror = IMAGE_HV_MIRROR;
+#endif
 	S5K5CAGX_set_mirror(sensor_config_data->SensorImageMirror);
     image_window->ExposureWindowWidth = S5K5CAGX_IMAGE_SENSOR_PV_WIDTH;
     image_window->ExposureWindowHeight = S5K5CAGX_IMAGE_SENSOR_PV_HEIGHT;
@@ -3868,7 +4158,11 @@ UINT32 S5K5CAGXGetInfo(MSDK_SCENARIO_ID_ENUM ScenarioId,
 	pSensorInfo->SensorWebCamCaptureFrameRate=15;
 	pSensorInfo->SensorResetActiveHigh=FALSE;
 	pSensorInfo->SensorResetDelayCount=1;
+#if defined(I5000_P150)
+	pSensorInfo->SensorOutputDataFormat=SENSOR_OUTPUT_FORMAT_YVYU;
+#else
 	pSensorInfo->SensorOutputDataFormat=SENSOR_OUTPUT_FORMAT_VYUY;
+#endif
 	pSensorInfo->SensorClockPolarity=SENSOR_CLOCK_POLARITY_LOW;	
 	pSensorInfo->SensorClockFallingPolarity=SENSOR_CLOCK_POLARITY_LOW;
 	pSensorInfo->SensorHsyncPolarity = SENSOR_CLOCK_POLARITY_LOW;
@@ -4406,6 +4700,17 @@ kal_uint16 S5K5CAGXReadAwbBGain()
 }
 #if defined(MT6575)
 
+/*************************************************************************
+* FUNCTION
+*    S5K5CAGXGetEvAwbRef
+*
+* DESCRIPTION
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void S5K5CAGXGetEvAwbRef(UINT32 pSensorAEAWBRefStruct/*PSENSOR_AE_AWB_REF_STRUCT Ref*/)
 {
     PSENSOR_AE_AWB_REF_STRUCT Ref = (PSENSOR_AE_AWB_REF_STRUCT)pSensorAEAWBRefStruct;
@@ -4422,6 +4727,17 @@ static void S5K5CAGXGetEvAwbRef(UINT32 pSensorAEAWBRefStruct/*PSENSOR_AE_AWB_REF
     Ref->SensorAwbGainRef.AwbRefCWFBgain = 164; /* 1.28125x, 128 base */
 	#endif
 }
+/*************************************************************************
+* FUNCTION
+*    S5K5CAGXGetCurAeAwbInfo
+*
+* DESCRIPTION
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void S5K5CAGXGetCurAeAwbInfo(UINT32 pSensorAEAWBCurStruct/*PSENSOR_AE_AWB_CUR_STRUCT Info*/)
 {
     PSENSOR_AE_AWB_CUR_STRUCT Info = (PSENSOR_AE_AWB_CUR_STRUCT)pSensorAEAWBCurStruct;

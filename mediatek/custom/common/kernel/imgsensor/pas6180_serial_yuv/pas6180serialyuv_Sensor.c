@@ -1,5 +1,91 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ *
+ * MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2005
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE. 
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
 
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   Sensor.c
+ *
+ * Project:
+ * --------
+ *   DUMA
+ *
+ * Description:
+ * ------------
+ *   Image sensor driver function
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by PVCS VM. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
 #include <linux/platform_device.h>
@@ -64,6 +150,22 @@ PAS6180_MODE g_iPAS6180SERIALYUV_Mode=PAS6180_MODE_PREVIEW;
 extern int iReadRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u8 * a_pRecvData, u16 a_sizeRecvData, u16 i2cId);
 extern int iWriteRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u16 i2cId);
 
+/*************************************************************************
+* FUNCTION
+*    PAS6180SERIALYUV_read_cmos_sensor
+*
+* DESCRIPTION
+*    This function read data from CMOS sensor through I2C.
+*
+* PARAMETERS
+*    addr: the 16bit address of register
+*
+* RETURNS
+*    8bit data read through I2C
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static kal_uint8 PAS6180SERIALYUV_read_cmos_sensor(kal_uint8 addr)
 {
   kal_uint8 in_buff[1] = {0xFF};
@@ -78,6 +180,23 @@ static kal_uint8 PAS6180SERIALYUV_read_cmos_sensor(kal_uint8 addr)
   return in_buff[0];
 }
 
+/*************************************************************************
+* FUNCTION
+*    PAS6180SERIALYUV_write_cmos_sensor
+*
+* DESCRIPTION
+*    This function wirte data to CMOS sensor through I2C
+*
+* PARAMETERS
+*    addr: the 16bit address of register
+*    para: the 8bit value of register
+*
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_write_cmos_sensor(kal_uint8 addr, kal_uint8 para)
 {
     kal_uint8 out_buff[2];
@@ -94,6 +213,20 @@ static void PAS6180SERIALYUV_write_cmos_sensor(kal_uint8 addr, kal_uint8 para)
 #define Sleep(ms) mdelay(ms)
 
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_write_Shutter
+*
+* DESCRIPTION
+*	This function used to write the shutter.
+*
+* PARAMETERS
+*	1. kal_uint32 : The shutter want to apply to sensor.
+*
+* RETURNS
+*	None
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_write_Shutter(kal_uint32 shutter)
 {  
     
@@ -147,6 +280,20 @@ static void PAS6180SERIALYUV_SetShutter(kal_uint32 iShutter)
 
 }/*  PAS6180SERIALYUV_SetShutter   */
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_read_Shutter
+*
+* DESCRIPTION
+*	This function read current shutter for calculate the exposure.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	kal_uint16 : The current shutter value.
+*
+*************************************************************************/
 static kal_uint32 PAS6180SERIALYUV_read_Shutter(void)
 {
     kal_uint32 lpf_value, ny_value, ne_value;
@@ -169,16 +316,62 @@ static kal_uint32 PAS6180SERIALYUV_read_Shutter(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_write_sensor_gain
+*
+* DESCRIPTION
+*	This function used to write the sensor gain.
+*
+* PARAMETERS
+*	1. kal_uint32 : The sensor gain want to apply to sensor.
+*
+* RETURNS
+*	None
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_SERIAL_write_sensor_gain(kal_uint32 gain)
 {
 	return ;
 }  /* PAS6180SERIALYUV_write_sensor_gain */
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_read_sensor_gain
+*
+* DESCRIPTION
+*	This function read current sensor gain for calculate the exposure.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	kal_uint16 : The current sensor gain value.
+*
+*************************************************************************/
 static kal_uint32 PAS6180SERIALYUV_read_sensor_gain(void)
 {
 	return 64;
 }  /* PAS6180SERIALYUV_read_sensor_gain */
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_SetDummy
+*
+* DESCRIPTION
+*	This function set the dummy pixels(Horizontal Blanking) & dummy lines(Vertical Blanking), it can be
+*	used to adjust the frame rate or gain more time for back-end process.
+*	
+*	IMPORTANT NOTICE: the base shutter need re-calculate for some sensor, or else flicker may occur.
+*
+* PARAMETERS
+*	1. kal_uint32 : Dummy Pixels (Horizontal Blanking)
+*	2. kal_uint32 : Dummy Lines (Vertical Blanking)
+*
+* RETURNS
+*	None
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_SetDummy(const kal_uint16 dummy_pixels, const kal_uint16 dummy_lines)
 {
     //Dummy pxiels => Nov Size
@@ -213,6 +406,23 @@ static void PAS6180SERIALYUV_SetDummy(const kal_uint16 dummy_pixels, const kal_u
 }   /*  PAS6180SERIALYUV_SetDummy    */
 
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_Set_Mirror_Flip
+*
+* DESCRIPTION
+*	This function mirror, flip or mirror & flip the sensor output image.
+*
+*	IMPORTANT NOTICE: For some sensor, it need re-set the output order Y1CbY2Cr after
+*	mirror or flip.
+*
+* PARAMETERS
+*	1. kal_uint16 : horizontal mirror or vertical flip direction.
+*
+* RETURNS
+*	None
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_Set_Mirror_Flip(INT32 image_mirror)
 {
     kal_uint8 temp_Mirror_reg = 0;
@@ -242,6 +452,20 @@ static void PAS6180SERIALYUV_Set_Mirror_Flip(INT32 image_mirror)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_set_AWB_mode
+*
+* DESCRIPTION
+*	This function enable or disable the awb (Auto White Balance).
+*
+* PARAMETERS
+*	1. kal_bool : KAL_TRUE - enable awb, KAL_FALSE - disable awb.
+*
+* RETURNS
+*	kal_bool : It means set awb right or not.
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_set_AWB_mode(kal_bool AWB_enable)
 {
     kal_uint8 temp_AWB_reg = 0;
@@ -261,6 +485,20 @@ static void PAS6180SERIALYUV_set_AWB_mode(kal_bool AWB_enable)
 
 }
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_set_AE_mode
+*
+* DESCRIPTION
+*	This function enable or disable the ae (Auto Exposure).
+*
+* PARAMETERS
+*	1. kal_bool : KAL_TRUE - enable ae, KAL_FALSE - disable awb.
+*
+* RETURNS
+*	kal_bool : It means set awb right or not.
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_set_AE_mode(kal_bool AE_enable)
 {
     kal_uint8 temp_AE_reg = 0;
@@ -280,6 +518,20 @@ static void PAS6180SERIALYUV_set_AE_mode(kal_bool AE_enable)
     }
 }
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_Sensor_Init
+*
+* DESCRIPTION
+*	This function apply all of the initial setting to sensor.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+*************************************************************************/
 static void PAS6180SERIALYUV_Sensor_Init(void)
 {
     
@@ -802,6 +1054,22 @@ static void PAS6180SERIALYUV_Sensor_Init(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUVOpen
+*
+* DESCRIPTION
+*	This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 PAS6180SERIALYUVOpen(void)
 {
     kal_uint16 sensor_id=0; 
@@ -847,6 +1115,22 @@ UINT32 PAS6180SERIALYUVOpen(void)
 }   /* PAS6180SERIALYUVOpen  */
 
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUV_GetSensorID
+*
+* DESCRIPTION
+*	This function get the sensor ID
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static kal_uint32 PAS6180SERIALYUV_GetSensorID(kal_uint32 *sensorID)
 
 {
@@ -867,6 +1151,22 @@ static kal_uint32 PAS6180SERIALYUV_GetSensorID(kal_uint32 *sensorID)
     return ERROR_NONE;    
 }   /* PAS6180SERIALYUV_GetSensorID  */
 
+/*************************************************************************
+* FUNCTION
+*	AS6180SERIALYUVClose
+*
+* DESCRIPTION
+*	This function is to turn off sensor module power.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 PAS6180SERIALYUVClose(void)
 {
 
@@ -876,6 +1176,23 @@ UINT32 PAS6180SERIALYUVClose(void)
 
 
 
+/*************************************************************************
+* FUNCTION
+* PAS6180SERIALYUVPreview
+*
+* DESCRIPTION
+*	This function start the sensor preview.
+*
+* PARAMETERS
+*	*image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 PAS6180SERIALYUVPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
@@ -917,6 +1234,21 @@ UINT32 PAS6180SERIALYUVPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 
 }   /*  PAS6180SERIALYUVPreview   */
 
+/*************************************************************************
+* FUNCTION
+*	PAS6180SERIALYUVCapture
+*
+* DESCRIPTION
+*	This function setup the CMOS sensor in capture MY_OUTPUT mode
+*
+* PARAMETERS
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 PAS6180SERIALYUVCapture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 						  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
@@ -1104,6 +1436,24 @@ UINT32 PAS6180SERIALYUVControl(MSDK_SCENARIO_ID_ENUM ScenarioId, MSDK_SENSOR_EXP
 
 
 
+/*************************************************************************
+* FUNCTION
+*    PAS6180SERIALYUVFeatureControl
+*
+* DESCRIPTION
+*    This function control sensor mode
+*
+* PARAMETERS
+*    id: scenario id
+*    image_window: image grab window
+*    cfg_data: config data
+*
+* RETURNS
+*    error code
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 UINT32 PAS6180SERIALYUVFeatureControl(MSDK_SENSOR_FEATURE_ENUM FeatureId,
                                                                 UINT8 *pFeaturePara,UINT32 *pFeatureParaLen)
 {

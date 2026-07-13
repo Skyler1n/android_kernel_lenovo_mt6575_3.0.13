@@ -1,5 +1,91 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ *
+ * MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2005
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE. 
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
 
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   Sensor.c
+ *
+ * Project:
+ * --------
+ *   DUMA
+ *
+ * Description:
+ * ------------
+ *   Image sensor driver function
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by PVCS VM. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
 #include <linux/platform_device.h>
@@ -61,6 +147,23 @@ kal_uint16 get_byte=0;
 
 extern int iReadRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u8 * a_pRecvData, u16 a_sizeRecvData, u16 i2cId);
 extern int iWriteRegI2C(u8 *a_pSendData , u16 a_sizeSendData, u16 i2cId);
+/*************************************************************************
+* FUNCTION
+*    OV7675_write_cmos_sensor
+*
+* DESCRIPTION
+*    This function wirte data to CMOS sensor through I2C
+*
+* PARAMETERS
+*    addr: the 16bit address of register
+*    para: the 8bit value of register
+*
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void OV7675_write_cmos_sensor(kal_uint8 addr, kal_uint8 para)
 {
 kal_uint8 out_buff[2];
@@ -75,6 +178,22 @@ kal_uint8 out_buff[2];
 #endif
 }
 
+/*************************************************************************
+* FUNCTION
+*    OV7675_read_cmos_sensor
+*
+* DESCRIPTION
+*    This function read data from CMOS sensor through I2C.
+*
+* PARAMETERS
+*    addr: the 16bit address of register
+*
+* RETURNS
+*    8bit data read through I2C
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static kal_uint8 OV7675_read_cmos_sensor(kal_uint8 addr)
 {
   kal_uint8 in_buff[1] = {0xFF};
@@ -131,18 +250,67 @@ static void OV7675_Write_Shutter(kal_uint16 shutter)
 }   /*  OV7675_Set_Dummy    */
 
 
+/*************************************************************************
+* FUNCTION
+*	OV7675_write_reg
+*
+* DESCRIPTION
+*	This function set the register of OV7675.
+*
+* PARAMETERS
+*	addr : the register index of OV76X0
+*  para : setting parameter of the specified register of OV76X0
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 //static void OV7675_write_reg(kal_uint32 addr, kal_uint32 para)
 //{
 //	OV7675_write_cmos_sensor(addr,para);
 //}	/* OV7675_write_reg() */
 
+/*************************************************************************
+* FUNCTION
+*	ov7670_read_cmos_sensor
+*
+* DESCRIPTION
+*	This function read parameter of specified register from OV76X0.
+*
+* PARAMETERS
+*	addr : the register index of OV76X0
+*
+* RETURNS
+*	the data that read from OV76X0
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 //static kal_uint32 OV7675_read_reg(kal_uint32 addr)
 //{
 //	return (OV7675_read_cmos_sensor(addr));
 //}	/* OV7670_read_reg() */
 
 
+/*************************************************************************
+* FUNCTION
+*	OV7675_NightMode
+*
+* DESCRIPTION
+*	This function night mode of OV7675.
+*
+* PARAMETERS
+*	bEnable: KAL_TRUE -> enable night mode, otherwise, disable night mode
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static void OV7675_night_mode(kal_bool bEnable)
 {
  kal_uint8 temp = OV7675_read_cmos_sensor(0x3B);
@@ -200,6 +368,13 @@ static void OV7675_night_mode(kal_bool bEnable)
 	}
 }	/*	OV7675_NightMode	*/
 
+/*
+static void OV7675_set_isp_driving_current(kal_uint8 current)
+{
+    //#define CONFIG_BASE      	(0xF0001000)     
+//  iowrite32((0xE << 12)|(0 << 28)|0x8880888, 0xF0001500);
+}
+*/
 
 static void OV7675_Sensor_Driver_Init(void)
 {                                          
@@ -463,6 +638,22 @@ static void OV7675_Sensor_Driver_Init(void)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*	OV7675Open
+*
+* DESCRIPTION
+*	This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static kal_uint32 OV7675Open(void)
 
 {
@@ -520,6 +711,22 @@ static kal_uint32 OV7675Open(void)
 }   /* OV7675Open  */
 
 
+/*************************************************************************
+* FUNCTION
+*	OV7675_GetSensorID
+*
+* DESCRIPTION
+*	This function get the sensor ID
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static kal_uint32 OV7675_GetSensorID(kal_uint32 *sensorID)
 
 {
@@ -540,6 +747,22 @@ static kal_uint32 OV7675_GetSensorID(kal_uint32 *sensorID)
     return ERROR_NONE;    
 }   /* OV7675Open  */
 
+/*************************************************************************
+* FUNCTION
+*	OV7675Close
+*
+* DESCRIPTION
+*	This function is to turn off sensor module power.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static kal_uint32 OV7675Close(void)
 {
 kal_uint8 tmp1;
@@ -604,6 +827,23 @@ static void OV7675_HVMirror(ACDK_SENSOR_IMAGE_MIRROR_ENUM SensorImageMirror)
 
 
 }
+/*************************************************************************
+* FUNCTION
+* OV7675_Preview
+*
+* DESCRIPTION
+*	This function start the sensor preview.
+*
+* PARAMETERS
+*	*image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 static kal_uint32 OV7675_Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 
@@ -648,6 +888,21 @@ static kal_uint32 OV7675_Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_windo
 
 }   /*  OV7675_Preview   */
 
+/*************************************************************************
+* FUNCTION
+*	OV7675_Capture
+*
+* DESCRIPTION
+*	This function setup the CMOS sensor in capture MY_OUTPUT mode
+*
+* PARAMETERS
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 #if 0
 static kal_uint32 OV7675_Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 						  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
@@ -675,6 +930,13 @@ static kal_uint32 OV7675_Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_windo
 	OV7675_Set_Dummy(OV7675_Sensor_Driver.dummy_pixels, OV7675_Sensor_Driver.dummy_lines);
 	OV7675_Write_Shutter(shutter);	
 
+/*	
+	sensor_config_data->DefaultPclk = fCP_PCLK; 
+	sensor_config_data->Pixels = iCP_Pixels_Per_Line;
+	sensor_config_data->FrameLines =VGA_PERIOD_PIXEL_NUMS ;
+	sensor_config_data->Lines = image_window->ExposureWindowHeight;    
+	sensor_config_data->Shutter =shutter;		
+*/	
 
 	
 	if(KAL_TRUE == OV7675_Sensor_Driver.bNight_mode)  // for nd128 noise
@@ -1133,6 +1395,13 @@ static BOOL OV7675_set_param_exposure(UINT16 para)
 
 static kal_uint32 OV7675_YUVSensorSetting(FEATURE_ID iCmd, UINT16 iPara)
 {
+/*
+CMD: AE Strob(4)->AE Flick(0) -> AF Mode(6) -> AF Metring(7) -> AE metring(1)
+-> EV(3) -> AWB(5) -> ISO(2) -> AE Scene Mode(13) ->Brightness(1) -> Hue(9)
+-> Saturation(10) -> Edge(8) -> Contrast(12) -> Scene Mode(14) -> Effect(15)
+
+For Current: Banding->EV->WB->Effect
+*/
     //printk("[OV7675_YUVSensorSetting], Cmd = 0x%x, Para = 0x%x\n", iCmd, iPara); 
 	//CAMERA_CONTROL_FLOW(iCmd,iPara);
 
@@ -1208,18 +1477,70 @@ UINT32 OV7675SetSoftwarePWDNMode(kal_bool bEnable)
     return TRUE;
 }
 
+/*************************************************************************
+* FUNCTION
+*    OV7675_get_size
+*
+* DESCRIPTION
+*    This function return the image width and height of image sensor.
+*
+* PARAMETERS
+*    *sensor_width: address pointer of horizontal effect pixels of image sensor
+*    *sensor_height: address pointer of vertical effect pixels of image sensor
+*
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void OV7675_get_size(kal_uint16 *sensor_width, kal_uint16 *sensor_height)
 {
   *sensor_width = IMAGE_SENSOR_FULL_WIDTH; /* must be 4:3 */
   *sensor_height = IMAGE_SENSOR_FULL_HEIGHT;
 }
 
+/*************************************************************************
+* FUNCTION
+*    OV7675_get_period
+*
+* DESCRIPTION
+*    This function return the image width and height of image sensor.
+*
+* PARAMETERS
+*    *pixel_number: address pointer of pixel numbers in one period of HSYNC
+*    *line_number: address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*    None
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static void OV7675_get_period(kal_uint16 *pixel_number, kal_uint16 *line_number)
 {
   *pixel_number = VGA_PERIOD_PIXEL_NUMS+OV7675_Sensor_Driver.dummy_pixels;
   *line_number = VGA_PERIOD_LINE_NUMS+OV7675_Sensor_Driver.dummy_lines;
 }
 
+/*************************************************************************
+* FUNCTION
+*    OV7675_feature_control
+*
+* DESCRIPTION
+*    This function control sensor mode
+*
+* PARAMETERS
+*    id: scenario id
+*    image_window: image grab window
+*    cfg_data: config data
+*
+* RETURNS
+*    error code
+*
+* LOCAL AFFECTED
+*
+*************************************************************************/
 static kal_uint32 OV7675FeatureControl(MSDK_SENSOR_FEATURE_ENUM id, kal_uint8 *para, kal_uint32 *len)
 {
 	UINT32 *pFeatureData32=(UINT32 *) para;

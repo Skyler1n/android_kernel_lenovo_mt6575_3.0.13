@@ -1,4 +1,242 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ *
+ * The following software/firmware and/or related documentation ("MediaTek Software")
+ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
+ * applicable license agreements with MediaTek Inc.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2008
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   sensor.c
+ *
+ * Project:
+ * --------
+ *   RAW
+ *
+ * Description:
+ * ------------
+ *   Source code of Sensor driver
+ *
+ *
+ * Author:
+ * -------
+ *   Jackie Su (MTK02380)
+ *
+ *============================================================================
+ *             HISTORY
+ * Below this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *------------------------------------------------------------------------------
+ * $Revision:$
+ * $Modtime:$
+ * $Log:$
+ *
+ * 02 21 2012 koli.lin
+ * [ALPS00240109] [Need Patch] [Volunteer Patch]
+ * [Camera] Add a new frame rate (24fps) for video mode.
+ *
+ * 11 11 2011 koli.lin
+ * [ALPS00086510] [Camera] preview?率?低
+ * [Camera] Modify the exposure line for flicker enable.
+ *
+ * 11 11 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * [Camera] Modify the flicker frame rate control.
+ *
+ * 11 01 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * [Camera] Add the flicker flag disable control before enter the ZSD mode.
+ *
+ * 10 31 2011 koli.lin
+ * [ALPS00081266] [Li Zhen]
+
+P49?是存在此?象
+
+
+[Wenjing]
+
+Hi,Koli:
+
+tester?有抓到??出??的?片，但是?描述看，??跟之前6573上何?提在video mode的一?issue相同，麻??忙check
+
+thanks
+
+
+李珍  61204
+
+ * [Camera] 1. Modify the preview output speed 648Mbps/lane.
+ *                2. Fix the flicker min limitation value. (max 1 fps)
+ *
+ * 10 17 2011 koli.lin
+ * [ALPS00074853] [Camera]flicker is serious when preview with light object
+ * [Camera] change the sensor binning mode to 2x from 4x to reduce the flicker serious..
+ *
+ * 10 07 2011 koli.lin
+ * [ALPS00077581] [Need Patch][Sanity Fail] When entering to Camera at the second time, camera cannot work and will see black screen
+ * [Camera] Rest the flicker flag value during the sensor initial.
+ *
+ * 06 13 2011 koli.lin
+ * [ALPS00053429] [Need Patch] [Volunteer Patch]
+ * [Camera] Modify the sensor color order for the CCT tool.
+ *
+ * 06 07 2011 koli.lin
+ * [ALPS00050047] [Camera]AE flash when set EV as -2
+ * [Camera] Rollback the preview resolution to 800x600.
+ *
+ * 06 07 2011 koli.lin
+ * [ALPS00049935] [Camera] AE is not correct when switch between camera still mode and video mode
+ * [Camera] Rollback the preview resolution to 800x600.
+ *
+ * 06 01 2011 koli.lin
+ * [ALPS00051509] [Need Patch] [Volunteer Patch]
+ * [Camera] Fix the mipi color order is not correctly for MT6573.
+ *
+ * 05 17 2011 koli.lin
+ * [ALPS00048194] [Need Patch] [Volunteer Patch]
+ * [Camera]. Chagne the preview size to 1600x1200 for IMX073 sensor.
+ *
+ * 05 02 2011 koli.lin
+ * [ALPS00040837] [Need check with submitter][WW FT][MT6573][Guangzhou]Exception ANR
+ * [Camera] Fix the exposure time calculate mistake.
+ *
+ * 04 22 2011 koli.lin
+ * [ALPS00042482] [Need Patch] [Volunteer Patch]
+ * [Camera] Move the sensor senstivity control to AE for preview and capture mode.
+ *
+ * 04 11 2011 koli.lin
+ * [ALPS00039429] [Need Patch] [Volunteer Patch]
+ * [Camera] Add flicker frame rate and sensor test pattern feature id.
+ *
+ * 04 08 2011 koli.lin
+ * [ALPS00037040] [Display]There is tearing on preview screen
+ * [Camera] Disable the gain group setting and reduce the gain delay frame number.
+ *
+ * 04 06 2011 koli.lin
+ * [ALPS00036187] [Camera]after do EV shot sometimes, part of the preview screen flashes
+ * [Camera] Modify the capture delay frame to get better performance..
+ *
+ * 04 02 2011 koli.lin
+ * [ALPS00036213] [Camera]change EV but it does not work
+ * [Camera] 1.Add the CSI2 debug message for dump register function.
+ *                2.Modify image start position to avoid the black line..
+ *
+ * 04 01 2011 koli.lin
+ * [ALPS00143914] [Android Build Warning Issue] mediatek/custom/out/ztemt73v2/kernel/imgsensor/imx073mipiraw_Sensor.c
+ * [Camera] 1.Clear the compile warning message.
+ *                2. Add the sensor driver 2D/3D information.
+ *                3.Add the auto flicker control and test pattern feature.
+ *
+ * 04 01 2011 koli.lin
+ * [ALPS00037668] [MPEG4 recording]record high quality video with night mode, the frame rate is not 15fps
+ * [Camera] Add the video mode frame rate control function.
+ *
+ * 04 01 2011 koli.lin
+ * [ALPS00037670] [MPEG4 recording]the frame rate of fine quality video can not reach 30fps
+ * [Camera]Modify the sensor preview output resolution and line time to fix frame rate at 30fps for video mode.
+ *
+ * 03 15 2011 koli.lin
+ * [ALPS00034474] [Need Patch] [Volunteer Patch]
+ * Move sensor driver current setting to isp of middleware.
+ *
+ * 03 10 2011 koli.lin
+ * [ALPS00033930] [Need Patch] [Volunteer Patch]
+ * Moving the CSI2 control flow from sensor driver to middleware.
+ *
+ * 03 02 2011 koli.lin
+ * [ALPS00032905] [Need Patch] [Volunteer Patch]
+ * Reset to default.
+ *
+ * 03 02 2011 koli.lin
+ * [ALPS00032905] [Need Patch] [Volunteer Patch]
+ * Provide the sensor width/height sampling ratio..
+ *
+ * 02 25 2011 koli.lin
+ * [ALPS00032248] [Need Patch] [Volunteer Patch]
+ * Close the csi2 before sensor driver close.
+ *
+ * 02 11 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * Add the csi2 control to imx073 sensor driver.
+ *
+ * 02 11 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * Change sensor driver preview size ratio to 4:3.
+ *
+ * 02 11 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * Modify the IMX073 sensor driver for preview mode.
+ *
+ * 02 11 2011 koli.lin
+ * [ALPS00030473] [Camera]
+ * Create IMX073 sensor driver to database.
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
 
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
@@ -172,6 +410,22 @@ static kal_uint8 IMX073MIPIGain2Reg(const kal_uint16 iGain)
     return IMX073MIPI_sensorGainMapping[iI][1];
 }
 
+/*************************************************************************
+* FUNCTION
+*    IMX073MIPI_SetGain
+*
+* DESCRIPTION
+*    This function is to set global gain to sensor.
+*
+* PARAMETERS
+*    gain : sensor global gain(base: 0x40)
+*
+* RETURNS
+*    the actually gain set to sensor.
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void IMX073MIPI_SetGain(UINT16 iGain)
 {
     kal_uint8 iReg;
@@ -184,6 +438,22 @@ void IMX073MIPI_SetGain(UINT16 iGain)
 }   /*  IMX073MIPI_SetGain_SetGain  */
 
 
+/*************************************************************************
+* FUNCTION
+*    read_IMX073MIPI_gain
+*
+* DESCRIPTION
+*    This function is to set global gain to sensor.
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint16 read_IMX073MIPI_gain(void)
 {
     return (kal_uint16)IMX073MIPI_read_cmos_sensor(0x0205);
@@ -211,6 +481,22 @@ void IMX073MIPI_camera_para_to_sensor(void)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*    IMX073MIPI_sensor_to_camera_para
+*
+* DESCRIPTION
+*    // update camera_para from sensor register
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void IMX073MIPI_sensor_to_camera_para(void)
 {
     kal_uint32    i;
@@ -224,6 +510,22 @@ void IMX073MIPI_sensor_to_camera_para(void)
     }
 }
 
+/*************************************************************************
+* FUNCTION
+*    IMX073MIPI_get_sensor_group_count
+*
+* DESCRIPTION
+*    //
+*
+* PARAMETERS
+*    None
+*
+* RETURNS
+*    gain : sensor global gain(base: 0x40)
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_int32  IMX073MIPI_get_sensor_group_count(void)
 {
     return GROUP_TOTAL_NUMS;
@@ -690,6 +992,22 @@ void IMX073MIPI_set_8M(void)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPIOpen
+*
+* DESCRIPTION
+*   This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 UINT32 IMX073MIPIOpen(void)
 {
@@ -720,6 +1038,22 @@ UINT32 IMX073MIPIOpen(void)
     return ERROR_NONE;
 }
 
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPIGetSensorID
+*
+* DESCRIPTION
+*   This function get the sensor ID 
+*
+* PARAMETERS
+*   *sensorID : return the sensor ID 
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 IMX073MIPIGetSensorID(UINT32 *sensorID) 
 {
     int  retry = 3; 
@@ -741,6 +1075,22 @@ UINT32 IMX073MIPIGetSensorID(UINT32 *sensorID)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPI_SetShutter
+*
+* DESCRIPTION
+*   This function set e-shutter of IMX073MIPI to change exposure time.
+*
+* PARAMETERS
+*   shutter : exposured lines
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void IMX073MIPI_SetShutter(kal_uint16 iShutter)
 {
 #if 0 
@@ -757,11 +1107,43 @@ void IMX073MIPI_SetShutter(kal_uint16 iShutter)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPI_read_shutter
+*
+* DESCRIPTION
+*   This function to  Get exposure time.
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   shutter : exposured lines
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT16 IMX073MIPI_read_shutter(void)
 {
     return (UINT16)( (IMX073MIPI_read_cmos_sensor(0x3002)<<8) | IMX073MIPI_read_cmos_sensor(0x3003) );
 }
 
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPI_night_mode
+*
+* DESCRIPTION
+*   This function night mode of IMX073MIPI.
+*
+* PARAMETERS
+*   none
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void IMX073MIPI_NightMode(kal_bool bEnable)
 {
 #if 0
@@ -799,6 +1181,22 @@ void IMX073MIPI_NightMode(kal_bool bEnable)
 
 
 
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPIClose
+*
+* DESCRIPTION
+*   This function is to turn off sensor module power.
+*
+* PARAMETERS
+*   None
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 IMX073MIPIClose(void)
 {
     //  CISModulePowerOn(FALSE);
@@ -831,6 +1229,23 @@ void IMX073MIPISetFlipMirror(kal_int32 imgMirror)
 }
 
 
+/*************************************************************************
+* FUNCTION
+*   IMX073MIPIPreview
+*
+* DESCRIPTION
+*   This function start the sensor preview.
+*
+* PARAMETERS
+*   *image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*   None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 IMX073MIPIPreview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
                                                 MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {

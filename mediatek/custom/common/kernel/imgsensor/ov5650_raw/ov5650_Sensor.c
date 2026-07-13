@@ -1,5 +1,87 @@
+/* Copyright Statement:
+ *
+ * This software/firmware and related documentation ("MediaTek Software") are
+ * protected under relevant copyright laws. The information contained herein
+ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
+ * Without the prior written permission of MediaTek inc. and/or its licensors,
+ * any reproduction, modification, use or disclosure of MediaTek Software,
+ * and information contained herein, in whole or in part, shall be strictly prohibited.
+ */
+/* MediaTek Inc. (C) 2010. All rights reserved.
+ *
+ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
+ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
+ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
+ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
+ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
+ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
+ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
+ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
+ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
+ */
 
+/*****************************************************************************
+*  Copyright Statement:
+*  --------------------
+*  This software is protected by Copyright and the information contained
+*  herein is confidential. The software may not be copied and the information
+*  contained herein may not be used or disclosed except with the written
+*  permission of MediaTek Inc. (C) 2005
+*
+*  BY OPENING THIS FILE, BUYER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
+*  THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
+*  RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO BUYER ON
+*  AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
+*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
+*  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
+*  NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
+*  SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
+*  SUPPLIED WITH THE MEDIATEK SOFTWARE, AND BUYER AGREES TO LOOK ONLY TO SUCH
+*  THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. MEDIATEK SHALL ALSO
+*  NOT BE RESPONSIBLE FOR ANY MEDIATEK SOFTWARE RELEASES MADE TO BUYER'S
+*  SPECIFICATION OR TO CONFORM TO A PARTICULAR STANDARD OR OPEN FORUM.
+*
+*  BUYER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND CUMULATIVE
+*  LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
+*  AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
+*  OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY BUYER TO
+*  MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE. 
+*
+*  THE TRANSACTION CONTEMPLATED HEREUNDER SHALL BE CONSTRUED IN ACCORDANCE
+*  WITH THE LAWS OF THE STATE OF CALIFORNIA, USA, EXCLUDING ITS CONFLICT OF
+*  LAWS PRINCIPLES.  ANY DISPUTES, CONTROVERSIES OR CLAIMS ARISING THEREOF AND
+*  RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
+*  THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
+*
+*****************************************************************************/
 
+/*****************************************************************************
+ *
+ * Filename:
+ * ---------
+ *   Sensor.c
+ *
+ * Project:
+ * --------
+ *   DUMA
+ *
+ * Description:
+ * ------------
+ *   Image sensor driver function
+ *
+ *------------------------------------------------------------------------------
+ * Upper this line, this part is controlled by PVCS VM. DO NOT MODIFY!!
+ *============================================================================
+ ****************************************************************************/
  //s_porting add
 //s_porting add
 //s_porting add
@@ -639,6 +721,19 @@ static void OV5650_Write_Shutter(const kal_uint16 iShutter)
 	
 	OV5650_write_cmos_sensor(0x3502, (iExp<<4) & 0xFF);
 
+/*	#if (defined(DRV_ISP_6238_SERIES))
+    // @frame rate change point, the extra exposure lines must be updated with ordinary
+    // exposure line registers. I don't know why!
+    if ((OV5650_g_iBackupExtraExp == 0 && OV5650_g_iExtra_ExpLines > 0) ||
+         OV5650_g_iOV5650_Mode == OV5650_MODE_CAPTURE ||
+         aeIsEnable() == KAL_FALSE) 
+	#endif
+      {
+     // OV5650_write_cmos_sensor(0x350c, OV5650_g_iExtra_ExpLines >> 8);
+      // OV5650_write_cmos_sensor(0x350d, OV5650_g_iExtra_ExpLines & 0x00FF);
+    }
+
+    OV5650_g_iBackupExtraExp = OV5650_g_iExtra_ExpLines;*/
 	
 	//OV5650_write_cmos_sensor(0x3501,iExp>>8);
 	//OV5650_write_cmos_sensor(0x3502,iExp & 0x00ff);
@@ -755,6 +850,22 @@ OV5650_write_cmos_sensor(0x380f, iTotalLines & 0xFF);
 	#endif
 }   /*  OV5650_Set_Dummy    */
 
+/*************************************************************************
+* FUNCTION
+*	OV5650_SetShutter
+*
+* DESCRIPTION
+*	This function set e-shutter of OV5650 to change exposure time.
+*
+* PARAMETERS
+*   iShutter : exposured lines
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void set_OV5650_shutter(kal_uint16 iShutter)
 {
     OV5650_g_iExpLines = iShutter;
@@ -808,6 +919,22 @@ static kal_uint16 OV5650_Reg2Gain(const kal_uint8 iReg)
 		}
 
 
+/*************************************************************************
+* FUNCTION
+*	OV5650_SetGain
+*
+* DESCRIPTION
+*	This function is to set global gain to sensor.
+*
+* PARAMETERS
+*   iGain : sensor global gain(base: 0x40)
+*
+* RETURNS
+*	the actually gain set to sensor.
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 kal_uint16 OV5650_SetGain(kal_uint16 iGain)
 
 {
@@ -828,6 +955,22 @@ const kal_uint16 iBaseGain = 64;//OV5650_Reg2Gain(camera_para.SENSOR.cct[OV5650_
 
 }
 
+/*************************************************************************
+* FUNCTION
+*	OV5650_NightMode
+*
+* DESCRIPTION
+*	This function night mode of OV5650.
+*
+* PARAMETERS
+*	bEnable: KAL_TRUE -> enable night mode, otherwise, disable night mode
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 void OV5650_night_mode(kal_bool bEnable)
 {
 #if 1
@@ -958,6 +1101,12 @@ void OV5650_sensor_to_camera_para(void)
        OV5650SensorReg[iI].Para = OV5650_read_cmos_sensor(OV5650SensorReg[iI].Addr);
     }
 
+/*
+    // CCT record should be not overwritten except by engineering mode
+    for (iI = 0; iI < CCT_END_ADDR; iI++) {
+        camera_para.SENSOR.cct[iI].para = read_OV5650_reg(camera_para.SENSOR.cct[iI].addr);
+    }
+*/
 }
 //------------------------Engineer mode---------------------------------
 kal_int32  OV5650_get_sensor_group_count(void)
@@ -1385,6 +1534,22 @@ static void OV5650_Sensor_Init(void)
 /*****************************************************************************/
 /* Windows Mobile Sensor Interface */
 /*****************************************************************************/
+/*************************************************************************
+* FUNCTION
+*	OV5650Open
+*
+* DESCRIPTION
+*	This function initialize the registers of CMOS sensor
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 
 UINT32 OV5650Open(void)
 {
@@ -1430,6 +1595,22 @@ UINT32 OV5650Open(void)
    return ERROR_NONE;
 }   /* OV5650Open  */
 
+/*************************************************************************
+* FUNCTION
+*	OV5650Close
+*
+* DESCRIPTION
+*	This function is to turn off sensor module power.
+*
+* PARAMETERS
+*	None
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5650Close(void)
 {
   //CISModulePowerOn(FALSE);
@@ -1437,6 +1618,23 @@ UINT32 OV5650Close(void)
 	return ERROR_NONE;
 }   /* OV5650Close */
 
+/*************************************************************************
+* FUNCTION
+* OV5650Preview
+*
+* DESCRIPTION
+*	This function start the sensor preview.
+*
+* PARAMETERS
+*	*image_window : address pointer of pixel numbers in one period of HSYNC
+*  *sensor_config_data : address pointer of line numbers in one period of VSYNC
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5650Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 					  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
@@ -1700,6 +1898,21 @@ UINT32 OV5650Preview(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 
 }   /*  OV5650Preview   */
 
+/*************************************************************************
+* FUNCTION
+*	OV5650Capture
+*
+* DESCRIPTION
+*	This function setup the CMOS sensor in capture MY_OUTPUT mode
+*
+* PARAMETERS
+*
+* RETURNS
+*	None
+*
+* GLOBALS AFFECTED
+*
+*************************************************************************/
 UINT32 OV5650Capture(MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT *image_window,
 						  MSDK_SENSOR_CONFIG_STRUCT *sensor_config_data)
 {
