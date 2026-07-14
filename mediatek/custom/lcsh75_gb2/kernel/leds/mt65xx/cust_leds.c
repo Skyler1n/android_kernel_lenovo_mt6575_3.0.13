@@ -63,7 +63,7 @@ static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
 	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
 	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
 	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{0}},
+	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{PWM_CLK_NEW_MODE_BLOCK,CLK_DIV1,4,4}},
 };
 
 struct cust_mt65xx_led *get_cust_led_list(void)
