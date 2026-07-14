@@ -44,94 +44,29 @@
 #include <mach/upmu_common_sw.h>
 #include <mach/upmu_hw.h>
 
-#define PHILIPS_ATLAS
-
 extern int mtkfb_set_backlight_level(unsigned int level);
 extern int mtkfb_set_backlight_pwm(int div);
 
+#define ERROR_BL_LEVEL 0xFFFFFFFF
+
 unsigned int brightness_mapping(unsigned int level)
 {
-    unsigned int mapped_level;
-    
-#if defined(PHILIPS_ATLAS)
-	mapped_level = level;
-#elif defined(SIMCOM_I5000) //amy0504 
-    mapped_level = level/6;
-#elif defined(ACER_C8)
-    //mapped_level = (level*100)/455;
-    mapped_level = level/4;
-#else
-    mapped_level = level/4;
-#endif
-       
-	return mapped_level;
-}
-
-unsigned int Cust_SetBacklight(int level, int div)
-{
-    mtkfb_set_backlight_pwm(div);
-    mtkfb_set_backlight_level(brightness_mapping(level));
-    return 0;
+	if (level > 0 && level <= 255)
+		return (level * 17) / 80;
+	return ERROR_BL_LEVEL;
 }
 
 static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
-#if defined(PHILIPS_ATLAS) 
-	{"red",               MT65XX_LED_MODE_NONE, -1,{0}},
-	{"green",             MT65XX_LED_MODE_NONE, -1,{0}},
+	{"red",               MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK5,{0}},
+	{"green",             MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK4,{0}},
 	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
 	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
 	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
 	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	{"lcd-backlight",     MT65XX_LED_MODE_CUST, (int)Cust_SetBacklight,{0}},
-#elif defined(SIMCOM_I6000)
-	{"red",               MT65XX_LED_MODE_PWM, PWM2,{0}},
-	{"green",            MT65XX_LED_MODE_NONE, -1,{0}},
-	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
-	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
-	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	/*punk,pwm clk 100Hz -> 30k*/
-	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{PWM_CLK_NEW_MODE_BLOCK,CLK_DIV1,24,24}}, 
-#elif defined(ACER_C8)
-	{"red",               MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK4},
-	{"green",             MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK5},
-	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
-	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
-	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	//{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC,  -1,{0}},
-	/*punk,pwm clk 100Hz -> 30k*/
-	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{PWM_CLK_NEW_MODE_BLOCK,CLK_DIV1,24,24}}, 
-#elif defined(SIMCOM_I5000)||defined(PHILIPS_TITAN) //amy0504 
-	{"red",               MT65XX_LED_MODE_NONE, -1,{0}},
-	{"green",             MT65XX_LED_MODE_NONE, -1,{0}},
-	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
-	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
-	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{PWM_CLK_NEW_MODE_BLOCK,CLK_DIV1,24,24}}, 
-#elif defined(SIMCOM_I3000)//LK@I3000
-	{"red",               MT65XX_LED_MODE_PWM, PWM2,{0}},
-	{"green",             MT65XX_LED_MODE_PWM, PWM1,{0}},
-	{"blue",              MT65XX_LED_MODE_PWM, PWM3,{0}},
-	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
-	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM0,{PWM_CLK_NEW_MODE_BLOCK,CLK_DIV1,24,24}}, 
-#else
-	{"red",               MT65XX_LED_MODE_NONE, -1,{0}},
-	{"green",             MT65XX_LED_MODE_NONE, -1,{0}},
-	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
-	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
-	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
-	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{0}}, 
-
-#endif
+	{"lcd-backlight",     MT65XX_LED_MODE_PWM, PWM1,{0}},
 };
 
 struct cust_mt65xx_led *get_cust_led_list(void)
 {
 	return cust_led_list;
 }
-
