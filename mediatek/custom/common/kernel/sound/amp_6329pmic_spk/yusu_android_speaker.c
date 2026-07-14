@@ -22,6 +22,7 @@
 #include <linux/delay.h>
 #include <mach/mt6575_clock_manager.h>
 #include <mach/mt6575_pmic_feature_api.h>
+#include <board-custom.h>
 #include "yusu_android_speaker.h"
 
 //#define CONFIG_DEBUG_MSG
@@ -44,6 +45,15 @@
 #define RCV_AMP_GAIN            (1)  //1:-3dB
 #define SPK_R_ENABLE            (1)
 #define SPK_L_ENABLE            (1)
+
+#ifndef CUST_SPEAKER_TURNON
+#define CUST_SPEAKER_TURNON() do {} while (0)
+#endif
+
+#ifndef CUST_SPEAKER_TURNOFF
+#define CUST_SPEAKER_TURNOFF() do {} while (0)
+#endif
+
 static int Speaker_Volume=0;
 static bool gsk_on=false; // speaker is open?
 static bool gsk_resume=false;
@@ -97,6 +107,7 @@ void Sound_Speaker_Turnon(int channel)
 #elif defined(AMP_CLASS_D)
     hwSPKClassDTurnOn(SPK_L_ENABLE,SPK_R_ENABLE);
 #endif
+    CUST_SPEAKER_TURNON();
     msleep(SPK_WARM_UP_TIME);
     gsk_on = true;
 }
@@ -106,6 +117,7 @@ void Sound_Speaker_Turnoff(int channel)
     PRINTK("Sound_Speaker_Turnoff channel = %d\n",channel);
 	if(!gsk_on)
 		return;
+    CUST_SPEAKER_TURNOFF();
 #if defined(AMP_CLASS_AB)
     hwSPKClassABTurnOff();
 #elif defined(AMP_CLASS_D)
@@ -236,5 +248,4 @@ kal_int32 Sound_ExtFunction(const char* name, void* param, int param_size)
 
 	return 1;
 }
-
 

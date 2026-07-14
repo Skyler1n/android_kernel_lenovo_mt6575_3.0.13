@@ -38,6 +38,17 @@
 
 #include <linux/autoconf.h>
 
+#define CUST_SPEAKER_AMP_EN_PIN GPIO101
+#define CUST_SPEAKER_TURNON()                                      \
+    do {                                                           \
+        mt_set_gpio_dir(CUST_SPEAKER_AMP_EN_PIN, GPIO_DIR_OUT);    \
+        mt_set_gpio_out(CUST_SPEAKER_AMP_EN_PIN, GPIO_OUT_ONE);    \
+    } while (0)
+#define CUST_SPEAKER_TURNOFF()                                     \
+    do {                                                           \
+        mt_set_gpio_out(CUST_SPEAKER_AMP_EN_PIN, GPIO_OUT_ZERO);   \
+    } while (0)
+
 /*=======================================================================*/
 /* MT6575 SD                                                             */
 /*=======================================================================*/
