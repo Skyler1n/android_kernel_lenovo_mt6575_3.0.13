@@ -72,7 +72,7 @@
 
 /*----------------------------------------------------------------------------*/
 static const struct i2c_device_id bma222_i2c_id[] = {{BMA222_DEV_NAME,0},{}};
-static struct i2c_board_info __initdata i2c_BMA222={ I2C_BOARD_INFO("BMA222", (0x10>>1))};
+static struct i2c_board_info __initdata i2c_BMA222={ I2C_BOARD_INFO("BMA222", (0x30>>1))};
 /*the adapter id will be available in customization*/
 //static unsigned short bma222_force[] = {0x00, BMA222_I2C_SLAVE_WRITE_ADDR, I2C_CLIENT_END, I2C_CLIENT_END};
 //static const unsigned short *const bma222_forces[] = { bma222_force, NULL };
@@ -510,7 +510,9 @@ static int BMA222_CheckDeviceID(struct i2c_client *client)
 	}
 	
 
-	if(databuf[0]!=BMA222_FIXED_DEVID)
+	if(databuf[0] != BMA222_FIXED_DEVID
+		&& databuf[0] != BMA222_A690_DEVID_0
+		&& databuf[0] != BMA222_A690_DEVID_1)
 	{
 		printk("BMA222_CheckDeviceID %d failt!\n ", databuf[0]);
 		return BMA222_ERR_IDENTIFICATION;
