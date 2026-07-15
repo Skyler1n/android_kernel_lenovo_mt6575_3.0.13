@@ -17,7 +17,4 @@
 <!-- This is the standard set of features for an camera. -->
 <permissions>
     <feature name="android.hardware.camera" />
-    <!-- unmark following line if the hardware supports autofocus -->
-    <feature name="android.hardware.camera.autofocus" />
-    <feature name="android.hardware.camera.flash" />
 </permissions>

@@ -51,15 +51,15 @@ CUSTOM_HAL_CAMERA = camera
 #found it
 CUSTOM_HAL_EEPROM = dummy_eeprom
 
-CUSTOM_HAL_FLASHLIGHT = constant_flashlight
+CUSTOM_HAL_FLASHLIGHT = dummy_flashlight
 
 # temp solution for custom folder
 CUSTOM_HAL_IMGSENSOR = imx073_mipi_raw siv120b_yuv
 CUSTOM_KERNEL_IMGSENSOR = ov3660_yuv hi351_yuv
-CUSTOM_HAL_LENS = fm50af dummy_lens
+CUSTOM_HAL_LENS = dummy_lens
 CUSTOM_KERNEL_LENS = dummy_lens
 
-CUSTOM_HAL_MAIN_LENS = fm50af
+CUSTOM_HAL_MAIN_LENS = dummy_lens
 
 CUSTOM_HAL_MAIN_BACKUP_LENS = 
 
@@ -104,7 +104,7 @@ CUSTOM_KERNEL_DCT = dct
 #found it
 CUSTOM_KERNEL_EEPROM = dummy_eeprom
 
-CUSTOM_KERNEL_FLASHLIGHT = constant_flashlight
+CUSTOM_KERNEL_FLASHLIGHT = dummy_flashlight
 
 CUSTOM_KERNEL_JOGBALL = 
 
