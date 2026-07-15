@@ -3457,7 +3457,7 @@ static int mt6575_nand_probe(struct platform_device *pdev)
 
     /*  register NFI IRQ handler. */
     /* Koshi, 2011.03.10 { */
-    mt65xx_irq_set_sens(MT6575_NFI_IRQ_ID, MT65xx_EDGE_SENSITIVE);
+    mt65xx_irq_set_sens(MT6575_NFI_IRQ_ID, MT65xx_LEVEL_SENSITIVE);
     mt65xx_irq_set_polarity(MT6575_NFI_IRQ_ID, MT65xx_POLARITY_LOW);
     err = request_irq(MT6575_NFI_IRQ_ID, mt6575_nand_irq_handler, IRQF_DISABLED, 
             "mt6575-nand", NULL); 
