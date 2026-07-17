@@ -4,7 +4,7 @@ include $(MTK_PATH_BUILD)/common.mk
 obj-y   += uart/
 obj-y   += power/
 obj-y	+= video/
-#obj-y   += g2d/
+obj-y   += g2d/
 obj-y   += nand/
 #obj-y   += gpu/
 obj-y	+= i2c/
