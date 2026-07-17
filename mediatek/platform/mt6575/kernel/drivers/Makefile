@@ -20,7 +20,7 @@ obj-y   += mmc-host/
 
 obj-y   += jpeg/
 #obj-m   += m4u/
-#obj-y	+= vibrator/
+obj-y	+= vibrator/
 #obj-y   += ccci/
 obj-y   += dum-char/
 #obj-m   += cmmbdrv/
