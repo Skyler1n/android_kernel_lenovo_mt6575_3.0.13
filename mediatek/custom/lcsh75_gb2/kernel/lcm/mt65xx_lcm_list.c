@@ -28,6 +28,10 @@ extern LCM_DRIVER lvds_wsvga_ti_lcm_drv;
 extern LCM_DRIVER nt35565_3d_lcm_drv;
 extern LCM_DRIVER tm070ddh03_lcm_drv;
 extern LCM_DRIVER r61408_lcm_drv;
+extern LCM_DRIVER r61581_dbi_jingdongfang_lcm_drv;
+extern LCM_DRIVER at070tna2_lcm_drv;
+extern LCM_DRIVER hb070d_lcm_drv;
+extern LCM_DRIVER nt35510_lcm_drv;
 extern LCM_DRIVER otm8009a_dsi_6575_lcm_drv;
 
 LCM_DRIVER* lcm_driver_list[] = 
@@ -62,6 +66,10 @@ LCM_DRIVER* lcm_driver_list[] =
 
 #if defined(R61408)
 	&r61408_lcm_drv,
+#endif
+
+#if defined(R61581_DBI_JINGDONGFANG)
+	&r61581_dbi_jingdongfang_lcm_drv,
 #endif
 
 #if defined(HX8369_DSI_VDO)
@@ -146,6 +154,18 @@ LCM_DRIVER* lcm_driver_list[] =
 
 #if defined(TM070DDH03)
 	&tm070ddh03_lcm_drv,
+#endif
+
+#if defined(AT070TNA2)
+	&at070tna2_lcm_drv,
+#endif
+
+#if defined(HB070D)
+	&hb070d_lcm_drv,
+#endif
+
+#if defined(NT35510)
+	&nt35510_lcm_drv,
 #endif
 
 #if defined(OTM8009A_DSI_6575)
