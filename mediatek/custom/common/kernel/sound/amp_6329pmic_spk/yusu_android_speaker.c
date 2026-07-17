@@ -24,6 +24,7 @@
 #include <linux/delay.h>
 #include <mach/mt6575_clock_manager.h>
 #include <mach/mt6575_pmic_feature_api.h>
+#include <board-custom.h>
 #include "yusu_android_speaker.h"
 
 /*****************************************************************************
@@ -52,6 +53,15 @@
 #define SPK_WARM_UP_TIME        (55) //unit is ms
 #define SPK_AMP_GAIN            (4)  //4:15dB
 #define RCV_AMP_GAIN            (1)  //1:-3dB
+
+/* Products with an external amplifier provide these in board-custom.h. */
+#ifndef CUST_SPEAKER_TURNON
+#define CUST_SPEAKER_TURNON() do {} while (0)
+#endif
+
+#ifndef CUST_SPEAKER_TURNOFF
+#define CUST_SPEAKER_TURNOFF() do {} while (0)
+#endif
 /*****************************************************************************
 *                         D A T A      T Y P E S
 ******************************************************************************
@@ -108,6 +118,7 @@ void Sound_Speaker_Turnon(int channel)
 #elif defined(AMP_CLASS_D)
     hwSPKClassDTurnOn(1,1);
 #endif
+    CUST_SPEAKER_TURNON();
     msleep(SPK_WARM_UP_TIME);
     gsk_on = true;
 }
@@ -117,6 +128,7 @@ void Sound_Speaker_Turnoff(int channel)
     PRINTK("Sound_Speaker_Turnoff channel = %d\n",channel);
 	if(!gsk_on)
 		return;
+    CUST_SPEAKER_TURNOFF();
 #if defined(AMP_CLASS_AB)
     hwSPKClassABTurnOff();
 #elif defined(AMP_CLASS_D)
@@ -239,5 +251,4 @@ kal_int32 Sound_ExtFunction(const char* name, void* param, int param_size)
 
 	return 1;
 }
-
 
