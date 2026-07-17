@@ -17,6 +17,7 @@ obj-y	+= rtc/
 obj-y	+= sound/
 #obj-y   += videocodec/
 obj-y   += mmc-host/
+
 obj-y   += jpeg/
 #obj-m   += m4u/
 #obj-y	+= vibrator/
