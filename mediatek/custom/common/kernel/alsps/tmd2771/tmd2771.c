@@ -65,6 +65,7 @@
 #include <asm/io.h>
 #include <cust_eint.h>
 #include <cust_alsps.h>
+#include <cust_tmd2771.h>
 #include "tmd2771.h"
 /******************************************************************************
  * configuration
@@ -1054,7 +1055,7 @@ static int tmd2771_init_client_for_cali(struct i2c_client *client)
 	}
 
 	databuf[0] = TMD2771_CMM_PPCOUNT;    
-	databuf[1] = TMD2771_CMM_PPCOUNT_VALUE;//0x02
+	databuf[1] = CUST_TMD2771_PPCOUNT;//0x02
 	res = i2c_master_send(client, databuf, 0x2);
 	if(res <= 0)
 	{
@@ -1063,7 +1064,7 @@ static int tmd2771_init_client_for_cali(struct i2c_client *client)
 	}
 
 	databuf[0] = TMD2771_CMM_CONTROL;    
-	databuf[1] = 0x20;//0x22
+	databuf[1] = CUST_TMD2771_CONTROL;//0x22
 	res = i2c_master_send(client, databuf, 0x2);
 	if(res <= 0)
 	{
@@ -1233,7 +1234,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 
        /*Lenovo-sw chenlj2 add 2011-06-03,modified pulse 2  to 4 */
 	databuf[0] = TMD2771_CMM_PPCOUNT;    
-	databuf[1] = TMD2771_CMM_PPCOUNT_VALUE;
+	databuf[1] = CUST_TMD2771_PPCOUNT;
 	res = i2c_master_send(client, databuf, 0x2);
 	if(res <= 0)
 	{
@@ -1243,7 +1244,7 @@ static int tmd2771_init_client(struct i2c_client *client)
 
         /*Lenovo-sw chenlj2 add 2011-06-03,modified gain 16  to 1 */
 	databuf[0] = TMD2771_CMM_CONTROL;    
-	databuf[1] = 0x20;
+	databuf[1] = CUST_TMD2771_CONTROL;
 	res = i2c_master_send(client, databuf, 0x2);
 	if(res <= 0)
 	{
@@ -2435,7 +2436,7 @@ static int tmd2771_i2c_probe(struct i2c_client *client, const struct i2c_device_
 	obj->als_level_num = sizeof(obj->hw->als_level)/sizeof(obj->hw->als_level[0]);
 	obj->als_value_num = sizeof(obj->hw->als_value)/sizeof(obj->hw->als_value[0]);  
 	/*Lenovo-sw chenlj2 add 2011-06-03,modified gain 16 to 1/5 accoring to actual thing */
-	obj->als_modulus = (400*100*ZOOM_TIME)/(1*150);//(1/Gain)*(400/Tine), this value is fix after init ATIME and CONTROL register value
+	obj->als_modulus = (400*100*40)/(1*1500);//(1/Gain)*(400/Tine), this value is fixed by the product sampling configuration
 										//(400)/16*2.72 here is amplify *100 //16
 	BUG_ON(sizeof(obj->als_level) != sizeof(obj->hw->als_level));
 	memcpy(obj->als_level, obj->hw->als_level, sizeof(obj->als_level));
