@@ -53,7 +53,10 @@ static struct alsps_hw cust_alsps_hw = {
     .ps_threshold_low = 150,
     .ps_threshold = 300,
 };
+
+int TMD2771_CMM_PPCOUNT_VALUE = 0x04;
+int ZOOM_TIME = 3300;
+
 struct alsps_hw *get_cust_alsps_hw(void) {
     return &cust_alsps_hw;
 }
-
