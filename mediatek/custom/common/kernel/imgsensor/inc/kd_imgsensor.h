@@ -81,10 +81,12 @@
 #define OV2640_SENSOR_ID                        0x2642
 #define OV2650_SENSOR_ID                        0x2652
 #define OV3640_SENSOR_ID                        0x364C
+#define OV3660_SENSOR_ID                        0x3660
 #define OV6680_SENSOR_ID                        0x6681
 #define OV7660_SENSOR_ID                        0x7660
 #define OV7670_SENSOR_ID                        0x7673
 #define OV7680_SENSOR_ID                        0x7680
+#define OV7690_SENSOR_ID                        0x7691
 #define OV9650_SENSOR_ID                        0x9652
 #define OV9655_SENSOR_ID                        0x9657
 #define OV9660_SENSOR_ID                        0x9663
@@ -152,6 +154,7 @@
 #define MT9P017_SENSOR_ID                       0x4800
 #define MT9P017MIPI_SENSOR_ID                       0x4800
 #define SHARP3D_SENSOR_ID                       0x003d
+#define GC0309_SENSOR_ID                         0x00a0
 #define MT9T113MIPI_SENSOR_ID                       0x4680
 
 /* CAMERA DRIVER NAME */
@@ -176,6 +179,8 @@
 #define SENSOR_DRVNAME_OV5642_YUV   "ov5642yuv"
 #define SENSOR_DRVNAME_OV5642_YUV_SWI2C   "ov5642yuvswi2c"
 #define SENSOR_DRVNAME_OV7675_YUV   "ov7675yuv"
+#define SENSOR_DRVNAME_OV7690_YUV   "ov7690yuv"
+#define SENSOR_DRVNAME_OV3660_YUV    	"ov3660yuv"
 #define SENSOR_DRVNAME_IMX073_MIPI_RAW   "imx073mipiraw"
 #define SENSOR_DRVNAME_S5K5CAGX_YUV     "s5k5cagxyuv"
 #define SENSOR_DRVNAME_SIV120B_YUV    "siv120byuv"
@@ -186,6 +191,8 @@
 #define SENSOR_DRVNAME_PAS6180_SERIAL_YUV    "pas6180serialyuv"
 #define SENSOR_DRVNAME_SHARP3D_MIPI_YUV    "sharp3dmipiyuv"
 #define SENSOR_DRVNAME_MT9T113_MIPI_YUV    "mt9t113mipiyuv"
+#define SENSOR_DRVNAME_GC0329_YUV   	"gc0329yuv"
+#define SENSOR_DRVNAME_GC0309_YUV      "gc0309yuv"
 /*******************************************************************************
 *
 ********************************************************************************/
