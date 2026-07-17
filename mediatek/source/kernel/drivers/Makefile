@@ -12,7 +12,7 @@ obj-y	+= leds/
 #obj-y   += hdmitx/
 
 ifeq ($(CONFIG_MTK_COMBO),m)
-#obj-y	+= combo/
+obj-y	+= combo/
 endif
 
 #obj-$(CONFIG_MTK_GPS)	+= gps/

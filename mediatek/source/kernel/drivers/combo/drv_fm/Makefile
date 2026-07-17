@@ -1,0 +1,8 @@
+ifeq ($(MTK_FM_SUPPORT), yes)
+ifeq ($(CUSTOM_KERNEL_FM), mt6620)
+
+obj-$(CONFIG_MTK_COMBO_FM) += private/
+obj-$(CONFIG_MTK_COMBO_FM) += public/
+
+endif
+endif
