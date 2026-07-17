@@ -7,8 +7,8 @@ obj-y   += video/
 obj-y   += usb20/
 obj-y	+= hwmon/
 obj-y	+= leds/
-#obj-y   += m4u/
-#obj-y   += videocodec/
+obj-y   += m4u/
+obj-y   += videocodec/
 #obj-y   += hdmitx/
 
 ifeq ($(CONFIG_MTK_COMBO),m)
